@@ -1,0 +1,418 @@
+/*
+SocialSync Theme - Based on CRM App globals.css
+This file provides CSS variables and theme styling consistent with the SocialSync app
+*/
+
+:root {
+  /* Font families */
+  --font-sans: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  
+  /* Light Theme Colors */
+  --background: 0 0% 100%;
+  --foreground: 0 0% 3.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 3.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 3.9%;
+  --primary: 217.2 91.2% 59.8%;
+  --primary-foreground: 0 0% 98%;
+  --secondary: 0 0% 96.1%;
+  --secondary-foreground: 0 0% 9%;
+  --muted: 0 0% 96.1%;
+  --muted-foreground: 0 0% 45.1%;
+  --accent: 0 0% 96.1%;
+  --accent-foreground: 0 0% 9%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 0 0% 89.8%;
+  --input: 0 0% 89.8%;
+  --ring: 217.2 91.2% 59.8%;
+  
+  /* Chart Colors */
+  --chart-1: 12 76% 61%;
+  --chart-2: 173 58% 39%;
+  --chart-3: 197 37% 24%;
+  --chart-4: 43 74% 66%;
+  --chart-5: 27 87% 67%;
+  
+  /* Border Radius */
+  --radius: 0.5rem;
+  
+  /* SocialSync Brand Colors */
+  --socialsync-blue: #3b82f6;
+  --socialsync-blue-dark: #2563eb;
+  --socialsync-blue-light: #60a5fa;
+  --socialsync-green: #22c55e;
+  --socialsync-green-dark: #16a34a;
+  --socialsync-purple: #8b5cf6;
+  --socialsync-orange: #f97316;
+  --socialsync-slate-50: #f8fafc;
+  --socialsync-slate-100: #f1f5f9;
+  --socialsync-slate-200: #e2e8f0;
+  --socialsync-slate-300: #cbd5e1;
+  --socialsync-slate-400: #94a3b8;
+  --socialsync-slate-500: #64748b;
+  --socialsync-slate-600: #475569;
+  --socialsync-slate-700: #334155;
+  --socialsync-slate-800: #1e293b;
+  --socialsync-slate-900: #0f172a;
+}
+
+/* Dark Theme */
+[data-theme="dark"] {
+  --background: 0 0% 3.9%;
+  --foreground: 0 0% 98%;
+  --card: 0 0% 3.9%;
+  --card-foreground: 0 0% 98%;
+  --popover: 0 0% 3.9%;
+  --popover-foreground: 0 0% 98%;
+  --primary: 217.2 91.2% 59.8%;
+  --primary-foreground: 0 0% 9%;
+  --secondary: 0 0% 14.9%;
+  --secondary-foreground: 0 0% 98%;
+  --muted: 0 0% 14.9%;
+  --muted-foreground: 0 0% 63.9%;
+  --accent: 0 0% 14.9%;
+  --accent-foreground: 0 0% 98%;
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 0% 98%;
+  --border: 0 0% 14.9%;
+  --input: 0 0% 14.9%;
+  --ring: 217.2 91.2% 59.8%;
+}
+
+/* Global Overrides for SocialSync Branding */
+body {
+  font-family: var(--font-sans);
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+}
+
+/* Override primary button colors */
+.main-blue-button a,
+.main-green-button a {
+  background: linear-gradient(135deg, var(--socialsync-blue) 0%, var(--socialsync-blue-dark) 100%) !important;
+  border-radius: var(--radius) !important;
+  padding: 12px 28px !important;
+  font-weight: 600 !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.39) !important;
+}
+
+.main-blue-button a:hover,
+.main-green-button a:hover {
+  background: linear-gradient(135deg, var(--socialsync-blue-dark) 0%, var(--socialsync-blue) 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 20px 0 rgba(59, 130, 246, 0.5) !important;
+}
+
+/* Secondary/Outline Button Style */
+.main-button {
+  background: linear-gradient(135deg, var(--socialsync-blue) 0%, var(--socialsync-blue-dark) 100%) !important;
+  border-radius: var(--radius) !important;
+  padding: 14px 32px !important;
+  font-weight: 600 !important;
+  color: white !important;
+  border: none !important;
+  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 14px 0 rgba(59, 130, 246, 0.39) !important;
+}
+
+.main-button:hover {
+  background: linear-gradient(135deg, var(--socialsync-blue-dark) 0%, var(--socialsync-blue) 100%) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* Header Styling */
+.header-area {
+  background: white !important;
+  border-bottom: 1px solid var(--socialsync-slate-200) !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+}
+
+.header-area .logo h4 {
+  color: var(--socialsync-slate-900) !important;
+  font-weight: 700 !important;
+}
+
+.header-area .logo h4 span {
+  color: var(--socialsync-blue) !important;
+}
+
+.header-area .nav li a {
+  color: var(--socialsync-slate-600) !important;
+  font-weight: 500 !important;
+  transition: color 0.2s ease !important;
+}
+
+.header-area .nav li a:hover,
+.header-area .nav li a.active {
+  color: var(--socialsync-blue) !important;
+}
+
+/* Section Headings */
+.section-heading h6 {
+  color: var(--socialsync-blue) !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+  font-size: 14px !important;
+}
+
+.section-heading h2 {
+  color: var(--socialsync-slate-900) !important;
+  font-weight: 700 !important;
+}
+
+.section-heading h2 em {
+  color: var(--socialsync-blue) !important;
+  font-style: normal !important;
+}
+
+.section-heading h2 span {
+  color: var(--socialsync-green) !important;
+}
+
+/* Feature Items */
+.features-item {
+  background: white !important;
+  border-radius: calc(var(--radius) * 2) !important;
+  border: 1px solid var(--socialsync-slate-200) !important;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06) !important;
+  transition: all 0.3s ease !important;
+}
+
+.features-item:hover {
+  border-color: var(--socialsync-blue) !important;
+  box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.15), 0 10px 10px -5px rgba(59, 130, 246, 0.04) !important;
+  transform: translateY(-4px) !important;
+}
+
+.features-item .number h6 {
+  background: linear-gradient(135deg, var(--socialsync-blue) 0%, var(--socialsync-blue-dark) 100%) !important;
+  color: white !important;
+}
+
+.features-item h4 {
+  color: var(--socialsync-slate-800) !important;
+  font-weight: 600 !important;
+}
+
+.features-item p {
+  color: var(--socialsync-slate-500) !important;
+}
+
+.features-item .line-dec {
+  background: linear-gradient(90deg, var(--socialsync-blue) 0%, var(--socialsync-green) 100%) !important;
+}
+
+/* Service Items */
+.service-item {
+  background: white !important;
+  border-radius: calc(var(--radius) * 2) !important;
+  border: 1px solid var(--socialsync-slate-200) !important;
+  transition: all 0.3s ease !important;
+}
+
+.service-item:hover {
+  border-color: var(--socialsync-blue) !important;
+  box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.15) !important;
+}
+
+.service-item h4 {
+  color: var(--socialsync-slate-800) !important;
+  font-weight: 600 !important;
+}
+
+.service-item p {
+  color: var(--socialsync-slate-500) !important;
+}
+
+/* Progress Bars / Skills */
+.progress .progress-bar {
+  border-color: var(--socialsync-blue) !important;
+}
+
+.progress .progress-value span {
+  color: var(--socialsync-slate-500) !important;
+}
+
+/* About Section */
+.about-us {
+  background: var(--socialsync-slate-50) !important;
+}
+
+.about-item h4 {
+  color: var(--socialsync-blue) !important;
+  font-weight: 700 !important;
+}
+
+.about-item h6 {
+  color: var(--socialsync-slate-600) !important;
+}
+
+/* Portfolio Section */
+.our-portfolio {
+  background: white !important;
+}
+
+.portfolio-item .thumb .hover-content {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.9) 0%, rgba(37, 99, 235, 0.9) 100%) !important;
+}
+
+.portfolio-item .inner-content h4 {
+  color: white !important;
+  font-weight: 600 !important;
+}
+
+.portfolio-item .inner-content span {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+/* Contact Section */
+.contact-us {
+  background: linear-gradient(135deg, var(--socialsync-slate-900) 0%, var(--socialsync-slate-800) 100%) !important;
+}
+
+.contact-us .section-heading h6 {
+  color: var(--socialsync-blue-light) !important;
+}
+
+.contact-us .section-heading h2 {
+  color: white !important;
+}
+
+.contact-us input,
+.contact-us textarea {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  border-radius: var(--radius) !important;
+  color: white !important;
+}
+
+.contact-us input::placeholder,
+.contact-us textarea::placeholder {
+  color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.contact-us input:focus,
+.contact-us textarea:focus {
+  border-color: var(--socialsync-blue) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3) !important;
+}
+
+.contact-info a {
+  color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.contact-info a:hover {
+  color: var(--socialsync-blue-light) !important;
+}
+
+/* Footer */
+footer {
+  background: var(--socialsync-slate-900) !important;
+  border-top: 1px solid var(--socialsync-slate-700) !important;
+}
+
+footer p {
+  color: var(--socialsync-slate-400) !important;
+}
+
+footer a {
+  color: var(--socialsync-blue-light) !important;
+}
+
+footer a:hover {
+  color: var(--socialsync-blue) !important;
+}
+
+/* Preloader */
+.js-preloader .dot {
+  background: var(--socialsync-blue) !important;
+}
+
+.js-preloader .dots span {
+  background: var(--socialsync-blue) !important;
+}
+
+/* Banner Section */
+.main-banner {
+  background: linear-gradient(135deg, var(--socialsync-slate-50) 0%, white 100%) !important;
+}
+
+.main-banner .info-stat {
+  background: white !important;
+  border-radius: calc(var(--radius) * 2) !important;
+  border: 1px solid var(--socialsync-slate-200) !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+.main-banner .info-stat h6 {
+  color: var(--socialsync-slate-500) !important;
+}
+
+.main-banner .info-stat h4 {
+  color: var(--socialsync-blue) !important;
+  font-weight: 700 !important;
+}
+
+.main-banner h2 {
+  color: var(--socialsync-slate-900) !important;
+  font-weight: 700 !important;
+}
+
+/* Cards with modern styling */
+.card-modern {
+  background: white;
+  border-radius: calc(var(--radius) * 2);
+  border: 1px solid var(--socialsync-slate-200);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
+
+.card-modern:hover {
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Utility Classes */
+.text-primary {
+  color: var(--socialsync-blue) !important;
+}
+
+.text-success {
+  color: var(--socialsync-green) !important;
+}
+
+.text-muted {
+  color: var(--socialsync-slate-500) !important;
+}
+
+.bg-primary {
+  background-color: var(--socialsync-blue) !important;
+}
+
+.bg-slate-50 {
+  background-color: var(--socialsync-slate-50) !important;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Selection color */
+::selection {
+  background: var(--socialsync-blue) !important;
+  color: white !important;
+}
+
+/* Mobile Menu Enhancements */
+@media (max-width: 991px) {
+  .header-area .nav {
+    background: white !important;
+    border-radius: var(--radius) !important;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1) !important;
+  }
+}
