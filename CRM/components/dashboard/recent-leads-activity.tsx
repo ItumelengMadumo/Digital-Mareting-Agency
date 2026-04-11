@@ -2,7 +2,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Phone, Mail, MessageSquare } from "lucide-react"
 import Link from "next/link"
-import { useRole } from "@/lib/role-context"
+import { useRole } from "@/lib/workspace-context"
 
 export default function RecentLeadsActivity() {
   const { isExecutive } = useRole()

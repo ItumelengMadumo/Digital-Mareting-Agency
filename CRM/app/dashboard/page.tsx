@@ -1,16 +1,25 @@
 "use client"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Users, TrendingUp, DollarSign, Target, MessageSquare, Plus, ArrowRight, BarChart3, Eye } from "lucide-react"
+import { Users, TrendingUp, DollarSign, Target, MessageSquare, Plus, ArrowRight, BarChart3, Eye, Megaphone, PenSquare, Zap, Share2 } from "lucide-react"
 import Link from "next/link"
 import RecentLeadsActivity from "@/components/dashboard/recent-leads-activity"
 import UpcomingPosts from "@/components/dashboard/upcoming-posts"
-import { useRole } from "@/lib/role-context"
+import { useRole } from "@/lib/workspace-context"
 
 export default function DashboardPage() {
   const { isExecutive } = useRole()
 
   const stats = [
+    {
+      title: "Active Campaigns",
+      value: isExecutive ? "12" : "4",
+      change: isExecutive ? "3 launching this week" : "2 in review",
+      icon: Megaphone,
+      color: "text-indigo-600",
+      bgColor: "bg-indigo-100",
+      href: "/dashboard/campaigns",
+    },
     {
       title: "Total Leads",
       value: isExecutive ? "248" : "42",
@@ -18,15 +27,6 @@ export default function DashboardPage() {
       icon: Users,
       color: "text-blue-600",
       bgColor: "bg-blue-100",
-      href: "/dashboard/leads",
-    },
-    {
-      title: "Qualified Leads",
-      value: isExecutive ? "89" : "18",
-      change: isExecutive ? "+12% from last month" : "Ready to close",
-      icon: Target,
-      color: "text-green-600",
-      bgColor: "bg-green-100",
       href: "/dashboard/leads",
     },
     {
@@ -39,13 +39,13 @@ export default function DashboardPage() {
       href: isExecutive ? "/dashboard/reports" : "/dashboard/leads",
     },
     {
-      title: "Communications",
-      value: isExecutive ? "3,160" : "87",
-      change: isExecutive ? "This month" : "This week",
-      icon: MessageSquare,
-      color: "text-orange-600",
-      bgColor: "bg-orange-100",
-      href: "/dashboard/communications",
+      title: "Engagement Rate",
+      value: isExecutive ? "4.8%" : "3.6%",
+      change: isExecutive ? "Across all platforms" : "This month avg",
+      icon: TrendingUp,
+      color: "text-green-600",
+      bgColor: "bg-green-100",
+      href: "/dashboard/campaigns",
     },
   ]
 
@@ -56,20 +56,20 @@ export default function DashboardPage() {
           <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
           <p className="text-muted-foreground mt-1">
             {isExecutive
-              ? "Welcome back! Here's your team's sales and marketing overview."
-              : "Welcome back! Here's your sales and marketing overview."}
+              ? "Welcome back! Here's your marketing command center overview."
+              : "Welcome back! Here's your campaigns and marketing overview."}
           </p>
         </div>
         <div className="flex gap-2">
-          <Link href="/dashboard/leads">
+          <Link href="/dashboard/campaigns">
             <Button className="gap-2">
               <Plus className="h-4 w-4" />
-              Add Lead
+              New Campaign
             </Button>
           </Link>
           <Link href="/dashboard/create-post">
             <Button variant="outline" className="gap-2 bg-transparent">
-              <Plus className="h-4 w-4" />
+              <PenSquare className="h-4 w-4" />
               Create Post
             </Button>
           </Link>
@@ -118,15 +118,15 @@ export default function DashboardPage() {
           <Card className="bg-gradient-to-br from-purple-50 to-white border-purple-200">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-purple-600" />
-                Team Reports
+                <Megaphone className="h-5 w-5 text-purple-600" />
+                Campaigns
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <p className="text-sm text-slate-600">View comprehensive team performance metrics</p>
-              <Link href="/dashboard/reports">
+              <p className="text-sm text-slate-600">Manage campaigns across all channels & platforms</p>
+              <Link href="/dashboard/campaigns">
                 <Button variant="outline" className="w-full gap-2 bg-white">
-                  View Reports
+                  View Campaigns
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
@@ -136,15 +136,15 @@ export default function DashboardPage() {
           <Card className="bg-gradient-to-br from-green-50 to-white border-green-200">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-green-600" />
-                My Leads
+                <BarChart3 className="h-5 w-5 text-green-600" />
+                Reports & Analytics
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <p className="text-sm text-slate-600">Manage your personal leads</p>
-              <Link href="/dashboard/leads">
+              <p className="text-sm text-slate-600">Cross-channel performance metrics & attribution</p>
+              <Link href="/dashboard/reports">
                 <Button variant="outline" className="w-full gap-2 bg-white">
-                  View My Leads
+                  View Reports
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
@@ -153,6 +153,24 @@ export default function DashboardPage() {
         </div>
       ) : (
         <div className="grid gap-6 md:grid-cols-3">
+          <Card className="bg-gradient-to-br from-indigo-50 to-white border-indigo-200">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Megaphone className="h-5 w-5 text-indigo-600" />
+                Campaigns
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <p className="text-sm text-slate-600">Create & manage multi-channel campaigns</p>
+              <Link href="/dashboard/campaigns">
+                <Button variant="outline" className="w-full gap-2 bg-white">
+                  View Campaigns
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
           <Card className="bg-gradient-to-br from-blue-50 to-white border-blue-200">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -171,36 +189,18 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-purple-50 to-white border-purple-200">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MessageSquare className="h-5 w-5 text-purple-600" />
-                Communications
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <p className="text-sm text-slate-600">Contact leads via email, SMS, WhatsApp, or call</p>
-              <Link href="/dashboard/communications">
-                <Button variant="outline" className="w-full gap-2 bg-white">
-                  Open Communications
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-
           <Card className="bg-gradient-to-br from-green-50 to-white border-green-200">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-green-600" />
-                My Performance
+                <Share2 className="h-5 w-5 text-green-600" />
+                Platforms
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <p className="text-sm text-slate-600">Track your deals and conversion rates</p>
-              <Link href="/dashboard/leads">
+              <p className="text-sm text-slate-600">Connected accounts & distribution queue</p>
+              <Link href="/dashboard/platforms">
                 <Button variant="outline" className="w-full gap-2 bg-white">
-                  View Performance
+                  View Platforms
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>

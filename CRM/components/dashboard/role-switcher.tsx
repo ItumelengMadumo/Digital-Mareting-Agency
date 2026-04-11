@@ -1,6 +1,6 @@
 "use client"
 
-import { useRole } from "@/lib/role-context"
+import { useRole } from "@/lib/workspace-context"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,

@@ -17,11 +17,19 @@ import {
   Package,
   Eye,
   Phone,
+  Megaphone,
+  Search,
+  MousePointerClick,
+  Link2,
+  Zap,
+  UserCheck,
+  Gift,
+  Radio,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { useRole } from "@/lib/role-context"
+import { useRole } from "@/lib/workspace-context"
 
 interface SidebarLink {
   name: string
@@ -38,6 +46,7 @@ const executiveOversightLinks: SidebarLink[] = [
 
 const mainLinks: SidebarLink[] = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Campaigns", href: "/dashboard/campaigns", icon: Megaphone },
   { name: "My Leads", href: "/dashboard/leads", icon: Users },
   { name: "Communications", href: "/dashboard/communications", icon: Phone },
   { name: "Products", href: "/dashboard/products", icon: Package },
@@ -47,6 +56,19 @@ const socialMediaLinks: SidebarLink[] = [
   { name: "Create Post", href: "/dashboard/create-post", icon: PenSquare },
   { name: "Calendar", href: "/dashboard/calendar", icon: Calendar },
   { name: "Platforms", href: "/dashboard/platforms", icon: Share2 },
+]
+
+const analyticsLinks: SidebarLink[] = [
+  { name: "SEO", href: "/dashboard/seo", icon: Search },
+  { name: "PPC / Ads", href: "/dashboard/ppc", icon: MousePointerClick },
+  { name: "Tracking", href: "/dashboard/tracking", icon: Link2 },
+]
+
+const marketingLinks: SidebarLink[] = [
+  { name: "Influencers", href: "/dashboard/influencers", icon: UserCheck },
+  { name: "Affiliates", href: "/dashboard/affiliates", icon: Gift },
+  { name: "Offline", href: "/dashboard/offline", icon: Radio },
+  { name: "Automation", href: "/dashboard/automation", icon: Zap },
 ]
 
 const systemLinks: SidebarLink[] = [{ name: "Settings", href: "/dashboard/settings", icon: Settings }]
@@ -132,7 +154,11 @@ export default function DashboardSidebar({ isMinimized, onToggle }: DashboardSid
 
             {renderSection(isExecutive ? "My Work" : "Main", mainLinks)}
 
-            {renderSection("Social Media", socialMediaLinks)}
+            {renderSection("Content", socialMediaLinks)}
+
+            {renderSection("Analytics", analyticsLinks)}
+
+            {renderSection("Marketing", marketingLinks)}
 
             {renderSection("System", systemLinks)}
           </nav>

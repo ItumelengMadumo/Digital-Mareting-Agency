@@ -5,6 +5,10 @@ import PlatformSelection from "@/components/dashboard/post/platform-selection"
 import UnifiedComposer from "@/components/dashboard/post/unified-composer"
 import ValidationScreen from "@/components/dashboard/post/validation-screen"
 import PublishStatusDashboard from "@/components/dashboard/post/publish-status-dashboard"
+import { Card, CardContent } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Megaphone } from "lucide-react"
 
 export type ContentType = "short-video" | "image" | "text" | "long-video" | "link"
 
@@ -18,7 +22,14 @@ export interface PostData {
   platformOverrides: Record<string, { caption?: string; title?: string }>
   scheduleDate?: Date
   isScheduled: boolean
+  campaignId?: string
 }
+
+const SAMPLE_CAMPAIGNS = [
+  { id: "camp1", name: "Summer Product Launch" },
+  { id: "camp2", name: "Q2 Brand Awareness" },
+  { id: "camp3", name: "Holiday Promo 2026" },
+]
 
 export default function CreatePostPage() {
   const [step, setStep] = useState(1)
@@ -29,6 +40,7 @@ export default function CreatePostPage() {
     hashtags: "",
     platformOverrides: {},
     isScheduled: false,
+    campaignId: undefined,
   })
   const [publishResults, setPublishResults] = useState<Record<string, { status: string; error?: string }>>({})
 
@@ -70,6 +82,7 @@ export default function CreatePostPage() {
       hashtags: "",
       platformOverrides: {},
       isScheduled: false,
+      campaignId: undefined,
     })
     setStep(1)
   }
@@ -79,6 +92,33 @@ export default function CreatePostPage() {
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="flex flex-col space-y-4">
           <h1 className="text-3xl font-bold tracking-tight">Create Social Media Post</h1>
+
+          {/* Campaign Link (optional) */}
+          <Card className="border-dashed">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-4">
+                <Megaphone className="h-5 w-5 text-muted-foreground shrink-0" />
+                <div className="flex-1">
+                  <Label className="text-sm font-medium">Link to Campaign (optional)</Label>
+                  <Select
+                    value={postData.campaignId || "none"}
+                    onValueChange={(v) => setPostData({ ...postData, campaignId: v === "none" ? undefined : v })}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="No campaign — standalone post" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No campaign — standalone post</SelectItem>
+                      {SAMPLE_CAMPAIGNS.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           <div className="flex items-center gap-2">
             {[1, 2, 3, 4, 5].map((s) => (
               <div key={s} className="flex items-center gap-2">

@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
 import { User, Bell, Shield, Building2, Palette, Database } from "lucide-react"
-import { useRole } from "@/lib/role-context"
+import { useRole } from "@/lib/workspace-context"
 
 export default function SettingsPage() {
   const { isExecutive } = useRole()

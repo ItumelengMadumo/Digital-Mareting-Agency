@@ -8,7 +8,7 @@ import { Plus, Search } from "lucide-react"
 import ProductsList from "@/components/dashboard/products/products-list"
 import AddProductDialog from "@/components/dashboard/products/add-product-dialog"
 import ProductsStats from "@/components/dashboard/products/products-stats"
-import { useRole } from "@/lib/role-context"
+import { useRole } from "@/lib/workspace-context"
 
 export default function ProductsPage() {
   const [searchQuery, setSearchQuery] = useState("")

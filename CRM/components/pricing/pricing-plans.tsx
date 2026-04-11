@@ -13,32 +13,34 @@ const frequencies = [
 
 const tiers = [
   {
-    name: "Starter",
-    id: "starter",
+    name: "Individual",
+    id: "individual",
     href: "#",
     price: { monthly: "$15", annually: "$144" },
-    description: "Perfect for individual creators and small businesses.",
+    description: "For solo creators managing their own presence.",
     features: [
+      "1 workspace",
       "Up to 3 social accounts",
       "30 scheduled posts per month",
-      "Basic analytics",
-      "Mobile app access",
+      "Basic analytics & reporting",
+      "UTM link builder",
       "Email support",
     ],
     mostPopular: false,
   },
   {
-    name: "Professional",
-    id: "professional",
+    name: "Freelancer",
+    id: "freelancer",
     href: "#",
     price: { monthly: "$35", annually: "$336" },
-    description: "Ideal for growing creators and small teams.",
+    description: "For freelancers managing multiple client accounts.",
     features: [
+      "Up to 5 client workspaces",
       "Up to 10 social accounts",
       "Unlimited scheduled posts",
-      "Advanced analytics",
-      "Content calendar",
-      "Team collaboration",
+      "Campaign management",
+      "Content calendar & variants",
+      "Lead tracking & CRM",
       "Priority support",
     ],
     mostPopular: true,
@@ -48,15 +50,35 @@ const tiers = [
     id: "business",
     href: "#",
     price: { monthly: "$79", annually: "$756" },
-    description: "For agencies and large organizations managing multiple accounts.",
+    description: "For growing businesses with dedicated marketing teams.",
     features: [
+      "Up to 15 client workspaces",
       "Up to 25 social accounts",
-      "Unlimited scheduled posts",
-      "Custom reports and analytics",
-      "Multi-team management",
-      "API access",
+      "Multi-channel campaigns",
+      "Automation engine",
+      "SEO & PPC tracking",
+      "Influencer & affiliate management",
+      "Tracking & attribution",
       "Dedicated account manager",
+    ],
+    mostPopular: false,
+  },
+  {
+    name: "Agency",
+    id: "agency",
+    href: "#",
+    price: { monthly: "$149", annually: "$1,428" },
+    description: "For agencies managing portfolios of clients at scale.",
+    features: [
+      "Unlimited client workspaces",
+      "Unlimited social accounts",
+      "White-label reports",
+      "Offline channel tracking",
+      "Advanced automation rules",
+      "Team roles & permissions",
+      "API access",
       "24/7 priority support",
+      "Custom integrations",
     ],
     mostPopular: false,
   },
@@ -87,7 +109,7 @@ export default function PricingPlans() {
         </div>
       </div>
 
-      <div className="mx-auto grid max-w-md grid-cols-1 gap-8 lg:max-w-none lg:grid-cols-3">
+      <div className="mx-auto grid max-w-md grid-cols-1 gap-8 lg:max-w-none lg:grid-cols-4">
         {tiers.map((tier) => (
           <Card key={tier.id} className={cn("flex flex-col", tier.mostPopular ? "border-blue-500 shadow-md" : "")}>
             <CardHeader>
