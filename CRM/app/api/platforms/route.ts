@@ -1,46 +1,34 @@
 import { NextResponse } from "next/server"
-import prisma from "@/lib/prisma"
+import { withWorkspaceAuth } from "@/lib/auth-helpers"
+import { createSocialAccount, listSocialAccountsByWorkspace } from "@/lib/db/social-accounts"
 
 // GET /api/platforms
-export async function GET(req: Request) {
-  try {
-    const { searchParams } = new URL(req.url)
-    const workspaceId = searchParams.get("workspaceId")
-
-    const accounts = await prisma.socialAccount.findMany({
-      where: workspaceId ? { workspaceId } : {},
-      orderBy: { createdAt: "desc" },
-    })
-    return NextResponse.json(accounts)
-  } catch {
-    return NextResponse.json([], { status: 200 })
-  }
-}
+export const GET = withWorkspaceAuth(async (_req, { workspaceId }) => {
+  const accounts = await listSocialAccountsByWorkspace(workspaceId)
+  accounts.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  return NextResponse.json(accounts)
+})
 
 // POST /api/platforms - connect a social account
-export async function POST(req: Request) {
-  try {
-    const body = await req.json()
-    const { workspaceId, platform, accountType, accountName } = body
+// NOTE: this still just records a SocialAccount row (accessToken/refreshToken stay empty).
+// Real OAuth (Meta/X/LinkedIn) is a later phase — see the redesign plan's Phase 1.
+export const POST = withWorkspaceAuth(async (req, { workspaceId }) => {
+  const body = await req.json()
+  const { platform, accountType, accountName } = body
 
-    if (!workspaceId || !platform || !accountType || !accountName) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
-    }
-
-    const account = await prisma.socialAccount.create({
-      data: {
-        workspaceId,
-        platform,
-        accountType,
-        accountName,
-        isConnected: true,
-        lastSyncAt: new Date(),
-      },
-    })
-
-    return NextResponse.json(account, { status: 201 })
-  } catch (error) {
-    console.error("Platform connect error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  if (!platform || !accountType || !accountName) {
+    return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
   }
-}
+
+  const account = await createSocialAccount({
+    workspaceId,
+    platform,
+    accountType,
+    accountName,
+    followers: 0,
+    isConnected: true,
+    lastSyncAt: new Date().toISOString(),
+  })
+
+  return NextResponse.json(account, { status: 201 })
+})

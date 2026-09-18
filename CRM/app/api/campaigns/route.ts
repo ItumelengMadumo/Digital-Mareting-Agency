@@ -1,69 +1,54 @@
 import { NextResponse } from "next/server"
-import prisma from "@/lib/prisma"
+import { withWorkspaceAuth } from "@/lib/auth-helpers"
+import { createCampaign, listCampaignsByWorkspace } from "@/lib/db/campaigns"
+import { listContentByCampaign } from "@/lib/db/content"
+import { listDistributionsByCampaign } from "@/lib/db/distributions"
 
-// GET /api/campaigns - list campaigns for workspace
-export async function GET(req: Request) {
-  try {
-    const { searchParams } = new URL(req.url)
-    const workspaceId = searchParams.get("workspaceId")
-    const status = searchParams.get("status")
-    const clientId = searchParams.get("clientId")
+// GET /api/campaigns - list campaigns for the caller's workspace
+export const GET = withWorkspaceAuth(async (req, { workspaceId }) => {
+  const { searchParams } = new URL(req.url)
+  const status = searchParams.get("status")
+  const clientId = searchParams.get("clientId")
 
-    const where: Record<string, unknown> = {}
-    if (workspaceId) where.workspaceId = workspaceId
-    if (status) where.status = status
-    if (clientId) where.clientId = clientId
+  let campaigns = await listCampaignsByWorkspace(workspaceId)
+  if (status) campaigns = campaigns.filter((c) => c.status === status)
+  if (clientId) campaigns = campaigns.filter((c) => c.clientId === clientId)
+  campaigns.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 
-    const campaigns = await prisma.campaign.findMany({
-      where,
-      include: {
-        client: true,
-        _count: { select: { contents: true, distributions: true, metrics: true } },
-      },
-      orderBy: { createdAt: "desc" },
-    })
+  const withCounts = await Promise.all(
+    campaigns.map(async (c) => {
+      const [contents, distributions] = await Promise.all([
+        listContentByCampaign(c.id),
+        listDistributionsByCampaign(c.id),
+      ])
+      return { ...c, _count: { contents: contents.length, distributions: distributions.length } }
+    }),
+  )
 
-    // Parse platforms JSON string back to array
-    const parsed = campaigns.map((c) => ({
-      ...c,
-      platforms: JSON.parse(c.platforms || "[]"),
-    }))
-
-    return NextResponse.json(parsed)
-  } catch (error) {
-    console.error("Campaign list error:", error)
-    return NextResponse.json([], { status: 200 })
-  }
-}
+  return NextResponse.json(withCounts)
+})
 
 // POST /api/campaigns - create a campaign
-export async function POST(req: Request) {
-  try {
-    const body = await req.json()
-    const { workspaceId, name, goal, type, platforms, budget, startDate, endDate, clientId } = body
+export const POST = withWorkspaceAuth(async (req, { workspaceId }) => {
+  const body = await req.json()
+  const { name, goal, type, platforms, budget, startDate, endDate, clientId } = body
 
-    if (!workspaceId || !name || !goal || !type) {
-      return NextResponse.json({ error: "workspaceId, name, goal, and type are required" }, { status: 400 })
-    }
-
-    const campaign = await prisma.campaign.create({
-      data: {
-        workspaceId,
-        name,
-        goal,
-        type,
-        platforms: JSON.stringify(platforms || []),
-        budget: budget ? parseFloat(budget) : null,
-        startDate: startDate ? new Date(startDate) : null,
-        endDate: endDate ? new Date(endDate) : null,
-        clientId: clientId || null,
-        status: "draft",
-      },
-    })
-
-    return NextResponse.json({ ...campaign, platforms: JSON.parse(campaign.platforms) }, { status: 201 })
-  } catch (error) {
-    console.error("Campaign creation error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  if (!name || !goal || !type) {
+    return NextResponse.json({ error: "name, goal, and type are required" }, { status: 400 })
   }
-}
+
+  const campaign = await createCampaign({
+    workspaceId,
+    name,
+    goal,
+    type,
+    platforms: platforms || [],
+    budget: budget ? parseFloat(budget) : null,
+    startDate: startDate || null,
+    endDate: endDate || null,
+    clientId: clientId || null,
+    status: "draft",
+  })
+
+  return NextResponse.json(campaign, { status: 201 })
+})

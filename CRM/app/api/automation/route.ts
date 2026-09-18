@@ -1,55 +1,38 @@
 import { NextResponse } from "next/server"
-import prisma from "@/lib/prisma"
+import { withWorkspaceAuth } from "@/lib/auth-helpers"
+import { createAutomationRule, listAutomationRulesByWorkspace } from "@/lib/db/automation-rules"
+import { listAutomationLogsByRule } from "@/lib/db/automation-logs"
 
 // GET /api/automation
-export async function GET(req: Request) {
-  try {
-    const { searchParams } = new URL(req.url)
-    const workspaceId = searchParams.get("workspaceId")
+export const GET = withWorkspaceAuth(async (_req, { workspaceId }) => {
+  const rules = await listAutomationRulesByWorkspace(workspaceId)
+  rules.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 
-    const rules = await prisma.automationRule.findMany({
-      where: workspaceId ? { workspaceId } : {},
-      include: { _count: { select: { automationLogs: true } } },
-      orderBy: { createdAt: "desc" },
-    })
+  const withCounts = await Promise.all(
+    rules.map(async (r) => ({ ...r, _count: { automationLogs: (await listAutomationLogsByRule(r.id)).length } })),
+  )
 
-    return NextResponse.json(
-      rules.map((r) => ({
-        ...r,
-        conditions: r.conditions ? JSON.parse(r.conditions) : null,
-        actionConfig: JSON.parse(r.actionConfig),
-      }))
-    )
-  } catch {
-    return NextResponse.json([], { status: 200 })
-  }
-}
+  return NextResponse.json(withCounts)
+})
 
 // POST /api/automation
-export async function POST(req: Request) {
-  try {
-    const body = await req.json()
-    const { workspaceId, name, trigger, conditions, action, actionConfig } = body
+export const POST = withWorkspaceAuth(async (req, { workspaceId }) => {
+  const body = await req.json()
+  const { name, trigger, conditions, action, actionConfig } = body
 
-    if (!workspaceId || !name || !trigger || !action || !actionConfig) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
-    }
-
-    const rule = await prisma.automationRule.create({
-      data: {
-        workspaceId,
-        name,
-        trigger,
-        conditions: conditions ? JSON.stringify(conditions) : null,
-        action,
-        actionConfig: JSON.stringify(actionConfig),
-        isActive: true,
-      },
-    })
-
-    return NextResponse.json(rule, { status: 201 })
-  } catch (error) {
-    console.error("Automation rule creation error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  if (!name || !trigger || !action || !actionConfig) {
+    return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
   }
-}
+
+  const rule = await createAutomationRule({
+    workspaceId,
+    name,
+    trigger,
+    conditions: conditions || null,
+    action,
+    actionConfig,
+    isActive: true,
+  })
+
+  return NextResponse.json(rule, { status: 201 })
+})

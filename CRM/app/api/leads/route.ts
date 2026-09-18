@@ -1,59 +1,41 @@
 import { NextResponse } from "next/server"
-import prisma from "@/lib/prisma"
+import { withWorkspaceAuth } from "@/lib/auth-helpers"
+import { createLead, listLeadsByWorkspace } from "@/lib/db/leads"
 
 // GET /api/leads
-export async function GET(req: Request) {
-  try {
-    const { searchParams } = new URL(req.url)
-    const workspaceId = searchParams.get("workspaceId")
-    const status = searchParams.get("status")
+export const GET = withWorkspaceAuth(async (req, { workspaceId }) => {
+  const { searchParams } = new URL(req.url)
+  const status = searchParams.get("status")
 
-    const where: Record<string, unknown> = {}
-    if (workspaceId) where.workspaceId = workspaceId
-    if (status) where.status = status
+  let leads = await listLeadsByWorkspace(workspaceId)
+  if (status) leads = leads.filter((l) => l.status === status)
+  leads.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
 
-    const leads = await prisma.lead.findMany({
-      where,
-      include: {
-        _count: { select: { communications: true, deals: true } },
-      },
-      orderBy: { createdAt: "desc" },
-    })
-    return NextResponse.json(leads)
-  } catch {
-    return NextResponse.json([], { status: 200 })
-  }
-}
+  return NextResponse.json(leads)
+})
 
 // POST /api/leads
-export async function POST(req: Request) {
-  try {
-    const body = await req.json()
-    const { workspaceId, name, email, phone, company, position, source, status, value, notes, assignedTo } = body
+export const POST = withWorkspaceAuth(async (req, { workspaceId }) => {
+  const body = await req.json()
+  const { name, email, phone, company, position, source, status, value, notes, assignedTo } = body
 
-    if (!workspaceId || !name) {
-      return NextResponse.json({ error: "workspaceId and name are required" }, { status: 400 })
-    }
-
-    const lead = await prisma.lead.create({
-      data: {
-        workspaceId,
-        name,
-        email: email || null,
-        phone: phone || null,
-        company: company || null,
-        position: position || null,
-        source: source || null,
-        status: status || "new",
-        value: value ? parseFloat(value) : null,
-        notes: notes || null,
-        assignedTo: assignedTo || null,
-      },
-    })
-
-    return NextResponse.json(lead, { status: 201 })
-  } catch (error) {
-    console.error("Lead creation error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+  if (!name) {
+    return NextResponse.json({ error: "name is required" }, { status: 400 })
   }
-}
+
+  const lead = await createLead({
+    workspaceId,
+    name,
+    email: email || null,
+    phone: phone || null,
+    company: company || null,
+    position: position || null,
+    source: source || null,
+    status: status || "new",
+    value: value ? parseFloat(value) : null,
+    notes: notes || null,
+    assignedTo: assignedTo || null,
+  })
+
+  return NextResponse.json(lead, { status: 201 })
+})

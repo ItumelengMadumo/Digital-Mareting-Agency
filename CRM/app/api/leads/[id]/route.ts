@@ -1,41 +1,38 @@
 import { NextResponse } from "next/server"
-import prisma from "@/lib/prisma"
+import { withResourceAuth } from "@/lib/auth-helpers"
+import { getLead, updateLead } from "@/lib/db/leads"
+import { listCommunicationsByLead } from "@/lib/db/communications"
+import { listDealsByLead } from "@/lib/db/deals"
 
 // GET /api/leads/[id]
-export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const { id } = await params
-    const lead = await prisma.lead.findUnique({
-      where: { id },
-      include: {
-        communications: { orderBy: { createdAt: "desc" } },
-        deals: { include: { product: true } },
-      },
-    })
+export const GET = withResourceAuth<{ id: string }>(
+  async ({ id }) => (await getLead(id))?.workspaceId ?? null,
+  async (_req, { params }) => {
+    const lead = await getLead(params.id)
     if (!lead) return NextResponse.json({ error: "Not found" }, { status: 404 })
-    return NextResponse.json(lead)
-  } catch (error) {
-    console.error("Lead fetch error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
-  }
-}
+
+    const [communications, deals] = await Promise.all([
+      listCommunicationsByLead(lead.id),
+      listDealsByLead(lead.id),
+    ])
+    communications.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+
+    return NextResponse.json({ ...lead, communications, deals })
+  },
+)
 
 // PATCH /api/leads/[id]
-export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  try {
-    const { id } = await params
+export const PATCH = withResourceAuth<{ id: string }>(
+  async ({ id }) => (await getLead(id))?.workspaceId ?? null,
+  async (req, { params }) => {
     const body = await req.json()
-
-    const data: Record<string, unknown> = {}
+    const patch: Record<string, unknown> = {}
     for (const key of ["name", "email", "phone", "company", "position", "source", "status", "notes", "assignedTo"]) {
-      if (body[key] !== undefined) data[key] = body[key] || null
+      if (body[key] !== undefined) patch[key] = body[key] || null
     }
-    if (body.value !== undefined) data.value = body.value ? parseFloat(body.value) : null
+    if (body.value !== undefined) patch.value = body.value ? parseFloat(body.value) : null
 
-    const lead = await prisma.lead.update({ where: { id }, data })
+    const lead = await updateLead(params.id, patch)
     return NextResponse.json(lead)
-  } catch (error) {
-    console.error("Lead update error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
-  }
-}
+  },
+)

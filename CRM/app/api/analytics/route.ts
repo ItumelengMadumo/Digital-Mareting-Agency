@@ -1,7 +1,42 @@
 import { NextResponse } from "next/server"
-import prisma from "@/lib/prisma"
+import { requireWorkspaceAccess, HttpError } from "@/lib/auth-helpers"
+import { getCampaign, listCampaignsByWorkspace } from "@/lib/db/campaigns"
+import { listMetricsByCampaign } from "@/lib/db/campaign-metrics"
+import { listContentByCampaign } from "@/lib/db/content"
+import { listDistributionsByCampaign } from "@/lib/db/distributions"
+import type { CampaignMetricRecord } from "@/lib/db/campaign-metrics"
 
-// GET /api/analytics
+function sumMetrics(metrics: CampaignMetricRecord[]) {
+  return metrics.reduce(
+    (acc, m) => ({
+      impressions: acc.impressions + m.impressions,
+      clicks: acc.clicks + m.clicks,
+      engagement: acc.engagement + m.engagement,
+      conversions: acc.conversions + m.conversions,
+      spend: acc.spend + m.spend,
+      revenue: acc.revenue + m.revenue,
+    }),
+    { impressions: 0, clicks: 0, engagement: 0, conversions: 0, spend: 0, revenue: 0 },
+  )
+}
+
+function roiOf(totals: { spend: number; revenue: number }) {
+  return totals.spend > 0 ? ((totals.revenue - totals.spend) / totals.spend) * 100 : 0
+}
+
+function groupByPlatform(metrics: CampaignMetricRecord[]) {
+  const byPlatform = new Map<string, CampaignMetricRecord[]>()
+  for (const m of metrics) {
+    byPlatform.set(m.platform, [...(byPlatform.get(m.platform) ?? []), m])
+  }
+  const grouped: Record<string, ReturnType<typeof sumMetrics>> = {}
+  for (const [platform, list] of byPlatform) {
+    grouped[platform] = sumMetrics(list)
+  }
+  return grouped
+}
+
+// GET /api/analytics?campaignId=... or ?workspaceId=...
 export async function GET(req: Request) {
   try {
     const { searchParams } = new URL(req.url)
@@ -11,83 +46,45 @@ export async function GET(req: Request) {
     const to = searchParams.get("to")
 
     if (campaignId) {
-      const metrics = await prisma.campaignMetric.findMany({
-        where: {
-          campaignId,
-          ...(from && to ? { date: { gte: new Date(from), lte: new Date(to) } } : {}),
-        },
-        orderBy: { date: "asc" },
-      })
+      const campaign = await getCampaign(campaignId)
+      if (!campaign) return NextResponse.json({ error: "Not found" }, { status: 404 })
+      await requireWorkspaceAccess(campaign.workspaceId)
 
-      // Aggregate totals
-      const totals = metrics.reduce(
-        (acc, m) => ({
-          impressions: acc.impressions + m.impressions,
-          clicks: acc.clicks + m.clicks,
-          engagement: acc.engagement + m.engagement,
-          conversions: acc.conversions + m.conversions,
-          spend: acc.spend + m.spend,
-          revenue: acc.revenue + m.revenue,
-        }),
-        { impressions: 0, clicks: 0, engagement: 0, conversions: 0, spend: 0, revenue: 0 }
-      )
+      let metrics = await listMetricsByCampaign(campaignId)
+      if (from && to) metrics = metrics.filter((m) => m.date >= from && m.date <= to)
+      metrics.sort((a, b) => a.date.localeCompare(b.date))
 
-      const roi = totals.spend > 0 ? ((totals.revenue - totals.spend) / totals.spend) * 100 : 0
-
-      return NextResponse.json({ metrics, totals: { ...totals, roi } })
+      const totals = sumMetrics(metrics)
+      return NextResponse.json({ metrics, totals: { ...totals, roi: roiOf(totals) } })
     }
 
     if (workspaceId) {
-      // Get all campaigns for workspace and aggregate
-      const campaigns = await prisma.campaign.findMany({
-        where: { workspaceId },
-        include: {
-          metrics: true,
-          _count: { select: { contents: true, distributions: true } },
-        },
-      })
+      await requireWorkspaceAccess(workspaceId)
 
-      const allMetrics = campaigns.flatMap((c) => c.metrics)
-      const totals = allMetrics.reduce(
-        (acc, m) => ({
-          impressions: acc.impressions + m.impressions,
-          clicks: acc.clicks + m.clicks,
-          engagement: acc.engagement + m.engagement,
-          conversions: acc.conversions + m.conversions,
-          spend: acc.spend + m.spend,
-          revenue: acc.revenue + m.revenue,
-        }),
-        { impressions: 0, clicks: 0, engagement: 0, conversions: 0, spend: 0, revenue: 0 }
+      const campaigns = await listCampaignsByWorkspace(workspaceId)
+      const allMetrics = (await Promise.all(campaigns.map((c) => listMetricsByCampaign(c.id)))).flat()
+      const totals = sumMetrics(allMetrics)
+
+      const contentsAndDistributions = await Promise.all(
+        campaigns.map(async (c) => ({
+          contents: (await listContentByCampaign(c.id)).length,
+          distributions: (await listDistributionsByCampaign(c.id)).length,
+        })),
       )
-
-      const roi = totals.spend > 0 ? ((totals.revenue - totals.spend) / totals.spend) * 100 : 0
 
       return NextResponse.json({
         campaigns: campaigns.length,
-        totals: { ...totals, roi },
+        contents: contentsAndDistributions.reduce((s, c) => s + c.contents, 0),
+        distributions: contentsAndDistributions.reduce((s, c) => s + c.distributions, 0),
+        totals: { ...totals, roi: roiOf(totals) },
         byPlatform: groupByPlatform(allMetrics),
       })
     }
 
     return NextResponse.json({ error: "campaignId or workspaceId is required" }, { status: 400 })
   } catch (error) {
+    if (error instanceof HttpError) return NextResponse.json({ error: error.message }, { status: error.status })
     console.error("Analytics error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
-}
-
-function groupByPlatform(metrics: { platform: string; impressions: number; clicks: number; engagement: number; conversions: number; spend: number; revenue: number }[]) {
-  const grouped: Record<string, { impressions: number; clicks: number; engagement: number; conversions: number; spend: number; revenue: number }> = {}
-  for (const m of metrics) {
-    if (!grouped[m.platform]) {
-      grouped[m.platform] = { impressions: 0, clicks: 0, engagement: 0, conversions: 0, spend: 0, revenue: 0 }
-    }
-    grouped[m.platform].impressions += m.impressions
-    grouped[m.platform].clicks += m.clicks
-    grouped[m.platform].engagement += m.engagement
-    grouped[m.platform].conversions += m.conversions
-    grouped[m.platform].spend += m.spend
-    grouped[m.platform].revenue += m.revenue
-  }
-  return grouped
 }

@@ -39,7 +39,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const [role, setRoleState] = useState<UserRole>("sales")
   const [workspace, setWorkspaceState] = useState<Workspace>(DEFAULT_WORKSPACE)
   const [workspaces, setWorkspaces] = useState<Workspace[]>([DEFAULT_WORKSPACE])
-  const [workspaceRole, setWorkspaceRole] = useState<MemberRole>("owner")
+  const [workspaceRole, setWorkspaceRole] = useState<MemberRole>("member")
   const [currentClientId, setCurrentClientId] = useState<string | null>(null)
 
   // Load persisted state
@@ -49,24 +49,29 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
       setRoleState(savedRole)
     }
     const savedWs = localStorage.getItem("current-workspace")
+    let parsedSavedWs: (Workspace & { role?: MemberRole }) | null = null
     if (savedWs) {
       try {
-        setWorkspaceState(JSON.parse(savedWs))
+        parsedSavedWs = JSON.parse(savedWs)
+        setWorkspaceState(parsedSavedWs as Workspace)
+        if (parsedSavedWs?.role) setWorkspaceRole(parsedSavedWs.role)
       } catch {}
     }
     const savedClient = localStorage.getItem("current-client-id")
     if (savedClient) setCurrentClientId(savedClient)
 
-    // Fetch workspaces from API if available
+    // GET /api/workspaces now returns only the session user's own workspaces, each annotated
+    // with that user's real membership role — no more hardcoded "owner".
     fetch("/api/workspaces")
-      .then((r) => r.ok ? r.json() : null)
-      .then((data) => {
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: (Workspace & { role: MemberRole })[] | null) => {
         if (data?.length) {
           setWorkspaces(data)
-          if (!savedWs) {
-            setWorkspaceState(data[0])
-            localStorage.setItem("current-workspace", JSON.stringify(data[0]))
-          }
+          const stillValid = parsedSavedWs && data.some((w) => w.id === parsedSavedWs!.id)
+          const active = stillValid ? data.find((w) => w.id === parsedSavedWs!.id)! : data[0]
+          setWorkspaceState(active)
+          setWorkspaceRole(active.role)
+          localStorage.setItem("current-workspace", JSON.stringify(active))
         }
       })
       .catch(() => {})
@@ -77,8 +82,9 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("user-role", newRole)
   }, [])
 
-  const setWorkspace = useCallback((ws: Workspace) => {
+  const setWorkspace = useCallback((ws: Workspace & { role?: MemberRole }) => {
     setWorkspaceState(ws)
+    if (ws.role) setWorkspaceRole(ws.role)
     localStorage.setItem("current-workspace", JSON.stringify(ws))
   }, [])
 
