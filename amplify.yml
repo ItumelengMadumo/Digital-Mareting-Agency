@@ -1,15 +1,19 @@
 version: 1
 applications:
   - appRoot: CRM
-    frontend:
+    backend:
       phases:
-        preBuild:
-          commands:
-            - npm ci
         build:
           commands:
-            # Amplify does not expose build env vars to the SSR runtime; write them to .env.production.
-            - env | grep -E '^(NEXTAUTH_|COGNITO_|DYNAMODB_|APP_|CRON_)' >> .env.production || true
+            - npm ci
+            # Deploys CRM/amplify (auth, tables, storage, functions) and writes amplify_outputs.json.
+            # Skipped on branches that don't have the amplify/ folder yet.
+            - if [ -d amplify ]; then npx ampx pipeline-deploy --branch $AWS_BRANCH --app-id $AWS_APP_ID; fi
+    frontend:
+      phases:
+        build:
+          commands:
+            - node scripts/write-runtime-env.mjs
             - npm run build
       artifacts:
         baseDirectory: .next

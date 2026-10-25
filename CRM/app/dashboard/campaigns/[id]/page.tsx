@@ -100,7 +100,7 @@ export default function CampaignDetailPage() {
           ) : (
             <Button className="gap-2"><Play className="h-4 w-4" /> Activate</Button>
           )}
-          <Link href="/dashboard/create-post">
+          <Link href="/dashboard/compose">
             <Button className="gap-2"><Plus className="h-4 w-4" /> Add Content</Button>
           </Link>
         </div>

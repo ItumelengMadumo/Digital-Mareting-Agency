@@ -8,7 +8,11 @@ import { generateVariantCaption, getRecommendedFormat } from "@/lib/tracking"
 export const POST = withResourceAuth<{ id: string }>(
   async ({ id }) => (await getContent(id))?.workspaceId ?? null,
   async (req, { params }) => {
-    const { platforms } = await req.json()
+    const { platforms, overrides = {}, markReady = true } = (await req.json()) as {
+      platforms?: string[]
+      overrides?: Record<string, { caption?: string; title?: string }>
+      markReady?: boolean
+    }
     if (!platforms?.length) {
       return NextResponse.json({ error: "platforms array is required" }, { status: 400 })
     }
@@ -21,7 +25,8 @@ export const POST = withResourceAuth<{ id: string }>(
         createVariant({
           contentId: content.id,
           platform: platform as never,
-          caption: generateVariantCaption(content.captionMaster, platform),
+          caption: overrides[platform]?.caption?.trim() || generateVariantCaption(content.captionMaster, platform),
+          title: overrides[platform]?.title?.trim() || null,
           mediaUrl: content.mediaUrl,
           format: getRecommendedFormat(platform) as never,
           status: "pending",
@@ -29,7 +34,8 @@ export const POST = withResourceAuth<{ id: string }>(
       ),
     )
 
-    await updateContent(content.id, { status: "ready" })
+    // Drafts stay drafts; anything queued to go out becomes "ready".
+    if (markReady) await updateContent(content.id, { status: "ready" })
 
     return NextResponse.json(variants, { status: 201 })
   },

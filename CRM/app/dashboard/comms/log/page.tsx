@@ -13,49 +13,22 @@ export default function CommunicationsPage() {
   const [isLogCommOpen, setIsLogCommOpen] = useState(false)
   const [typeFilter, setTypeFilter] = useState<string>("all")
 
-  // Mock data for standalone communications
-  const communications = [
-    {
-      id: "1",
-      type: "call",
-      contact: "John Smith",
-      phone: "+1 234 567 8900",
-      email: "john@example.com",
-      company: "Tech Corp",
-      date: "2024-01-15 10:30 AM",
-      duration: "15 mins",
-      outcome: "Interested - Follow up next week",
-      notes: "Discussed product features, needs pricing info",
-      loggedBy: "Sarah Johnson",
-      convertedToLead: false,
-    },
-    {
-      id: "2",
-      type: "email",
-      contact: "Emma Wilson",
-      phone: "+1 234 567 8901",
-      email: "emma@startup.io",
-      company: "StartUp.io",
-      date: "2024-01-14 3:45 PM",
-      outcome: "No response yet",
-      notes: "Sent product demo video and case studies",
-      loggedBy: "Mike Davis",
-      convertedToLead: false,
-    },
-    {
-      id: "3",
-      type: "whatsapp",
-      contact: "David Lee",
-      phone: "+1 234 567 8902",
-      email: "david@company.com",
-      company: "Growth Co",
-      date: "2024-01-14 11:20 AM",
-      outcome: "Not interested at this time",
-      notes: "Currently using competitor, might revisit in Q2",
-      loggedBy: "Sarah Johnson",
-      convertedToLead: false,
-    },
-  ]
+  // Standalone communications (not yet tied to a lead). Lead-linked ones live on each lead's
+  // timeline via /api/communications?leadId=. A workspace-wide list endpoint comes with sending.
+  const communications: {
+    id: string
+    type: string
+    contact: string
+    phone?: string
+    email: string
+    company: string
+    date: string
+    duration?: string
+    outcome: string
+    notes: string
+    loggedBy: string
+    convertedToLead: boolean
+  }[] = []
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -101,10 +74,10 @@ export default function CommunicationsPage() {
   })
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <div className="flex items-center justify-between">
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Communications Log</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Comms log</h1>
           <p className="text-muted-foreground mt-1">
             Track all outreach and conversations, even before they become leads
           </p>
@@ -121,7 +94,7 @@ export default function CommunicationsPage() {
           <CardDescription>View all logged communications and convert promising ones to leads</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex gap-4 items-center">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
@@ -131,7 +104,7 @@ export default function CommunicationsPage() {
                 className="pl-10 bg-white border-slate-200"
               />
             </div>
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Button
                 variant={typeFilter === "all" ? "default" : "outline"}
                 onClick={() => setTypeFilter("all")}
@@ -171,6 +144,11 @@ export default function CommunicationsPage() {
           </div>
 
           <div className="space-y-3">
+            {filteredCommunications.length === 0 && (
+              <p className="rounded-lg border border-dashed p-8 text-center text-sm text-slate-500">
+                No communications logged yet. Use &quot;Log Communication&quot; to record a call, email or message.
+              </p>
+            )}
             {filteredCommunications.map((comm) => (
               <Card key={comm.id} className="bg-slate-50 border-slate-200 hover:shadow-md transition-shadow">
                 <CardContent className="p-4">

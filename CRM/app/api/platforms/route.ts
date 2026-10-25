@@ -6,7 +6,8 @@ import { createSocialAccount, listSocialAccountsByWorkspace } from "@/lib/db/soc
 export const GET = withWorkspaceAuth(async (_req, { workspaceId }) => {
   const accounts = await listSocialAccountsByWorkspace(workspaceId)
   accounts.sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-  return NextResponse.json(accounts)
+  // Never send platform tokens to the browser.
+  return NextResponse.json(accounts.map(({ accessToken: _a, refreshToken: _r, ...account }) => account))
 })
 
 // POST /api/platforms - connect a social account

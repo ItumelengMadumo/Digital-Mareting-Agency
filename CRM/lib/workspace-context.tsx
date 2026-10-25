@@ -21,6 +21,8 @@ interface WorkspaceContextType {
   workspaceType: WorkspaceType
   currentClientId: string | null
   setCurrentClientId: (id: string | null) => void
+  /** True once the real workspace list has loaded from /api/workspaces. */
+  workspaceLoaded: boolean
 }
 
 const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefined)
@@ -41,6 +43,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([DEFAULT_WORKSPACE])
   const [workspaceRole, setWorkspaceRole] = useState<MemberRole>("member")
   const [currentClientId, setCurrentClientId] = useState<string | null>(null)
+  const [workspaceLoaded, setWorkspaceLoaded] = useState(false)
 
   // Load persisted state
   useEffect(() => {
@@ -72,6 +75,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
           setWorkspaceState(active)
           setWorkspaceRole(active.role)
           localStorage.setItem("current-workspace", JSON.stringify(active))
+          setWorkspaceLoaded(true)
         }
       })
       .catch(() => {})
@@ -110,6 +114,7 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
         workspaceType: workspace?.type as WorkspaceType ?? "business",
         currentClientId,
         setCurrentClientId: setClientId,
+        workspaceLoaded,
       }}
     >
       {children}

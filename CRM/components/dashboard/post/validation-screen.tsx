@@ -4,15 +4,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { CheckCircle2, AlertCircle, XCircle, Calendar, Hash, FileText } from "lucide-react"
-import type { PostData } from "@/app/dashboard/create-post/page"
+import type { PostData } from "@/app/dashboard/compose/page"
 
 interface ValidationScreenProps {
   postData: PostData
   onConfirm: () => void
   onBack: () => void
+  saving?: boolean
 }
 
-export default function ValidationScreen({ postData, onConfirm, onBack }: ValidationScreenProps) {
+export default function ValidationScreen({ postData, onConfirm, onBack, saving }: ValidationScreenProps) {
   const validatePlatform = (platform: string) => {
     const issues = []
     const warnings = []
@@ -164,8 +165,8 @@ export default function ValidationScreen({ postData, onConfirm, onBack }: Valida
           <Button variant="outline" onClick={onBack}>
             Back to Edit
           </Button>
-          <Button disabled={!allReady} onClick={onConfirm}>
-            {postData.isScheduled ? "Schedule Post" : "Publish Now"}
+          <Button disabled={!allReady || saving} onClick={onConfirm}>
+            {saving ? "Saving..." : postData.isScheduled ? "Save & schedule" : "Save draft"}
           </Button>
         </CardFooter>
       </Card>

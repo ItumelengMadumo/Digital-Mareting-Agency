@@ -8,6 +8,9 @@ export interface UserRecord extends BaseItem {
   lastName: string
   avatarUrl?: string
   phone?: string
+  bio?: string
+  handle?: string
+  timezone?: string
 }
 
 const repo = createRepository<UserRecord>("Users")

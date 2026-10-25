@@ -1,217 +1,173 @@
 "use client"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Users, TrendingUp, DollarSign, Target, MessageSquare, Plus, ArrowRight, BarChart3, Eye, Megaphone, PenSquare, Zap, Share2 } from "lucide-react"
+
+import { useEffect, useMemo, useState } from "react"
 import Link from "next/link"
-import RecentLeadsActivity from "@/components/dashboard/recent-leads-activity"
-import UpcomingPosts from "@/components/dashboard/upcoming-posts"
-import { useRole } from "@/lib/workspace-context"
+import { format } from "date-fns"
+import { CalendarClock, CheckCircle2, Circle, PenSquare, Share2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Skeleton } from "@/components/ui/skeleton"
+import PostCard, { PostsEmptyState } from "@/components/dashboard/posts/post-card"
+import { postView, usePosts } from "@/lib/posts"
+import { useCurrentUser } from "@/lib/use-current-user"
+import { useWorkspace } from "@/lib/workspace-context"
 
-export default function DashboardPage() {
-  const { isExecutive } = useRole()
+const PAGE_SIZE = 10
 
-  const stats = [
-    {
-      title: "Active Campaigns",
-      value: isExecutive ? "12" : "4",
-      change: isExecutive ? "3 launching this week" : "2 in review",
-      icon: Megaphone,
-      color: "text-indigo-600",
-      bgColor: "bg-indigo-100",
-      href: "/dashboard/campaigns",
-    },
-    {
-      title: "Total Leads",
-      value: isExecutive ? "248" : "42",
-      change: isExecutive ? "+18% from last month" : "Your active leads",
-      icon: Users,
-      color: "text-blue-600",
-      bgColor: "bg-blue-100",
-      href: "/dashboard/leads",
-    },
-    {
-      title: isExecutive ? "Pipeline Value" : "Your Pipeline",
-      value: isExecutive ? "$2.4M" : "$180K",
-      change: isExecutive ? "+23% from last month" : "Total deal value",
-      icon: DollarSign,
-      color: "text-purple-600",
-      bgColor: "bg-purple-100",
-      href: isExecutive ? "/dashboard/reports" : "/dashboard/leads",
-    },
-    {
-      title: "Engagement Rate",
-      value: isExecutive ? "4.8%" : "3.6%",
-      change: isExecutive ? "Across all platforms" : "This month avg",
-      icon: TrendingUp,
-      color: "text-green-600",
-      bgColor: "bg-green-100",
-      href: "/dashboard/campaigns",
-    },
+function useConnectedAccountCount() {
+  const { workspace, workspaceLoaded } = useWorkspace()
+  const [count, setCount] = useState<number | null>(null)
+  useEffect(() => {
+    if (!workspaceLoaded || !workspace) return
+    fetch(`/api/platforms?workspaceId=${workspace.id}`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then((accounts: { isConnected?: boolean }[]) => setCount(accounts.filter((a) => a.isConnected).length))
+      .catch(() => setCount(0))
+  }, [workspace, workspaceLoaded])
+  return count
+}
+
+export default function DashboardHome() {
+  const { user } = useCurrentUser()
+  const { posts, loading, error } = usePosts()
+  const connectedAccounts = useConnectedAccountCount()
+  const [visible, setVisible] = useState(PAGE_SIZE)
+
+  const scheduled = useMemo(
+    () =>
+      posts
+        .filter((p) => postView(p) === "scheduled")
+        .sort((a, b) => (a.scheduledAt ?? "").localeCompare(b.scheduledAt ?? ""))
+        .slice(0, 5),
+    [posts],
+  )
+
+  const checklist = [
+    { label: "Create your account", done: true },
+    { label: "Connect a social account", done: (connectedAccounts ?? 0) > 0, href: "/dashboard/accounts" },
+    { label: "Write your first post", done: posts.length > 0, href: "/dashboard/compose" },
+    { label: "Schedule a post", done: posts.some((p) => p.scheduledAt), href: "/dashboard/compose" },
   ]
+  const checklistDone = checklist.every((c) => c.done)
 
   return (
-    <div className="space-y-6 w-full p-6">
-      <div className="flex items-center justify-between">
+    <div className="mx-auto w-full max-w-6xl space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">
-            {isExecutive
-              ? "Welcome back! Here's your marketing command center overview."
-              : "Welcome back! Here's your campaigns and marketing overview."}
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {user?.firstName ? `Welcome, ${user.firstName}` : "Welcome"}
+          </h1>
+          <p className="mt-1 text-muted-foreground">Your posts, newest first.</p>
         </div>
-        <div className="flex gap-2">
-          <Link href="/dashboard/campaigns">
-            <Button className="gap-2">
-              <Plus className="h-4 w-4" />
-              New Campaign
-            </Button>
+        <Button className="bg-blue-500 hover:bg-blue-600" asChild>
+          <Link href="/dashboard/compose">
+            <PenSquare className="mr-2 h-4 w-4" />
+            New post
           </Link>
-          <Link href="/dashboard/create-post">
-            <Button variant="outline" className="gap-2 bg-transparent">
-              <PenSquare className="h-4 w-4" />
-              Create Post
-            </Button>
-          </Link>
-        </div>
+        </Button>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <Link key={stat.title} href={stat.href}>
-            <Card className="bg-white border-slate-200 hover:shadow-md transition-shadow cursor-pointer">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-slate-600">{stat.title}</CardTitle>
-                <div className={`p-2 rounded-lg ${stat.bgColor}`}>
-                  <stat.icon className={`h-4 w-4 ${stat.color}`} />
-                </div>
+      <div className="grid gap-6 lg:grid-cols-3">
+        <section className="space-y-4 lg:col-span-2" aria-label="Post timeline">
+          {loading ? (
+            Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-40 w-full rounded-xl" />)
+          ) : error ? (
+            <Card>
+              <CardContent className="p-6 text-sm text-red-600">{error}</CardContent>
+            </Card>
+          ) : posts.length === 0 ? (
+            <PostsEmptyState
+              title="Your timeline is empty"
+              text="Every post you write shows up here with its status on each platform, and its likes and comments once it's live."
+            />
+          ) : (
+            <>
+              {posts.slice(0, visible).map((post) => (
+                <PostCard key={post.id} post={post} />
+              ))}
+              {visible < posts.length && (
+                <Button variant="outline" className="w-full" onClick={() => setVisible((v) => v + PAGE_SIZE)}>
+                  Load more
+                </Button>
+              )}
+            </>
+          )}
+        </section>
+
+        <aside className="space-y-6">
+          {!checklistDone && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Get set up</CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="text-xs text-green-600 mt-1">{stat.change}</p>
+              <CardContent className="space-y-3">
+                {checklist.map((item) => (
+                  <div key={item.label} className="flex items-center gap-3 text-sm">
+                    {item.done ? (
+                      <CheckCircle2 className="h-5 w-5 flex-shrink-0 text-green-600" />
+                    ) : (
+                      <Circle className="h-5 w-5 flex-shrink-0 text-slate-300" />
+                    )}
+                    {item.done || !item.href ? (
+                      <span className={item.done ? "text-slate-500 line-through" : ""}>{item.label}</span>
+                    ) : (
+                      <Link href={item.href} className="font-medium text-blue-600 hover:underline">
+                        {item.label}
+                      </Link>
+                    )}
+                  </div>
+                ))}
               </CardContent>
             </Card>
-          </Link>
-        ))}
-      </div>
+          )}
 
-      {isExecutive ? (
-        <div className="grid gap-6 md:grid-cols-3">
-          <Card className="bg-gradient-to-br from-indigo-50 to-white border-indigo-200">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Eye className="h-5 w-5 text-indigo-600" />
-                Team Oversight
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <CalendarClock className="h-4 w-4 text-blue-500" />
+                Coming up
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
-              <p className="text-sm text-slate-600">Monitor all team leads, analytics, and communications</p>
-              <Link href="/dashboard/oversight">
-                <Button variant="outline" className="w-full gap-2 bg-white">
-                  View Oversight
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
+            <CardContent>
+              {scheduled.length === 0 ? (
+                <p className="text-sm text-slate-500">Nothing scheduled yet.</p>
+              ) : (
+                <ul className="space-y-3">
+                  {scheduled.map((p) => (
+                    <li key={p.id} className="text-sm">
+                      <p className="font-medium text-slate-800">
+                        {format(new Date(p.scheduledAt!), "EEE d MMM, HH:mm")}
+                      </p>
+                      <p className="line-clamp-2 text-slate-500">{p.captionMaster}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <Button variant="link" className="mt-2 h-auto px-0" asChild>
+                <Link href="/dashboard/calendar">Open calendar</Link>
+              </Button>
             </CardContent>
           </Card>
 
-          <Card className="bg-gradient-to-br from-purple-50 to-white border-purple-200">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Megaphone className="h-5 w-5 text-purple-600" />
-                Campaigns
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Share2 className="h-4 w-4 text-blue-500" />
+                Social accounts
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
-              <p className="text-sm text-slate-600">Manage campaigns across all channels & platforms</p>
-              <Link href="/dashboard/campaigns">
-                <Button variant="outline" className="w-full gap-2 bg-white">
-                  View Campaigns
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
+            <CardContent className="text-sm text-slate-600">
+              {connectedAccounts === null
+                ? "Checking..."
+                : connectedAccounts === 0
+                  ? "No accounts connected yet."
+                  : `${connectedAccounts} connected`}
+              <Button variant="link" className="block h-auto px-0" asChild>
+                <Link href="/dashboard/accounts">Manage accounts</Link>
+              </Button>
             </CardContent>
           </Card>
-
-          <Card className="bg-gradient-to-br from-green-50 to-white border-green-200">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5 text-green-600" />
-                Reports & Analytics
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <p className="text-sm text-slate-600">Cross-channel performance metrics & attribution</p>
-              <Link href="/dashboard/reports">
-                <Button variant="outline" className="w-full gap-2 bg-white">
-                  View Reports
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
-      ) : (
-        <div className="grid gap-6 md:grid-cols-3">
-          <Card className="bg-gradient-to-br from-indigo-50 to-white border-indigo-200">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Megaphone className="h-5 w-5 text-indigo-600" />
-                Campaigns
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <p className="text-sm text-slate-600">Create & manage multi-channel campaigns</p>
-              <Link href="/dashboard/campaigns">
-                <Button variant="outline" className="w-full gap-2 bg-white">
-                  View Campaigns
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-blue-50 to-white border-blue-200">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5 text-blue-600" />
-                My Leads
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <p className="text-sm text-slate-600">Manage and track your sales leads</p>
-              <Link href="/dashboard/leads">
-                <Button variant="outline" className="w-full gap-2 bg-white">
-                  View My Leads
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-gradient-to-br from-green-50 to-white border-green-200">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Share2 className="h-5 w-5 text-green-600" />
-                Platforms
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <p className="text-sm text-slate-600">Connected accounts & distribution queue</p>
-              <Link href="/dashboard/platforms">
-                <Button variant="outline" className="w-full gap-2 bg-white">
-                  View Platforms
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      <div className="grid gap-6 grid-cols-1 lg:grid-cols-2">
-        <RecentLeadsActivity />
-        <UpcomingPosts />
+        </aside>
       </div>
     </div>
   )

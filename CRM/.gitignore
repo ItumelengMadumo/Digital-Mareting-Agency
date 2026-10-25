@@ -5,3 +5,7 @@ out
 # Keep environment variables out of version control
 .env
 .env.local
+
+# Amplify Gen 2
+amplify_outputs.json
+.amplify

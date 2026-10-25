@@ -1,7 +1,7 @@
 "use client"
 
 import { Facebook, Twitter, Instagram, Linkedin, Youtube, Music } from "lucide-react"
-import type { ContentType } from "@/app/dashboard/create-post/page"
+import type { ContentType } from "@/app/dashboard/compose/page"
 
 interface PlatformPreviewProps {
   platform: string

@@ -7,24 +7,31 @@ import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Separator } from "@/components/ui/separator"
-import { User, Bell, Shield, Building2, Palette, Database } from "lucide-react"
+import Link from "next/link"
+import { User, Bell, Shield, Building2, Palette, Database, CreditCard } from "lucide-react"
 import { useRole } from "@/lib/workspace-context"
 
 export default function SettingsPage() {
   const { isExecutive } = useRole()
 
   return (
-    <div className="flex flex-col gap-6 p-6">
+    <div className="flex flex-col gap-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-        <p className="text-muted-foreground mt-1">Manage your account and application preferences</p>
+        <p className="text-muted-foreground mt-1">
+          Workspace, notifications and security. Your name, photo and bio are on your{" "}
+          <Link href="/dashboard/profile" className="text-blue-600 hover:underline">
+            profile
+          </Link>
+          .
+        </p>
       </div>
 
-      <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="bg-slate-100">
-          <TabsTrigger value="profile" className="gap-2">
-            <User className="h-4 w-4" />
-            Profile
+      <Tabs defaultValue="usage" className="w-full">
+        <TabsList className="h-auto flex-wrap justify-start bg-slate-100">
+          <TabsTrigger value="usage" className="gap-2">
+            <CreditCard className="h-4 w-4" />
+            Usage &amp; billing
           </TabsTrigger>
           <TabsTrigger value="notifications" className="gap-2">
             <Bell className="h-4 w-4" />
@@ -52,38 +59,25 @@ export default function SettingsPage() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="profile" className="mt-6">
+        <TabsContent value="usage" className="mt-6">
           <Card className="bg-white border-slate-200">
             <CardHeader>
-              <CardTitle>Profile Settings</CardTitle>
-              <CardDescription>Update your personal information and preferences</CardDescription>
+              <CardTitle>Usage &amp; billing</CardTitle>
+              <CardDescription>Your plan and what you&apos;ve used this month</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="name">Full Name</Label>
-                  <Input id="name" placeholder="John Doe" className="bg-white border-slate-200" />
+            <CardContent className="space-y-4 text-sm">
+              <div className="flex items-center justify-between rounded-lg border border-slate-200 p-4">
+                <div>
+                  <p className="font-medium">Free pilot</p>
+                  <p className="text-muted-foreground">No charges during the pilot. Paid plans start after it.</p>
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" placeholder="john@example.com" className="bg-white border-slate-200" />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input id="phone" placeholder="+1 (555) 123-4567" className="bg-white border-slate-200" />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="role">Role</Label>
-                  <Input
-                    id="role"
-                    value={isExecutive ? "Executive" : "Sales & Marketing"}
-                    disabled
-                    className="bg-slate-50 border-slate-200"
-                  />
-                </div>
+                <Button variant="outline" asChild>
+                  <Link href="/pricing">See plans</Link>
+                </Button>
               </div>
-              <Separator />
-              <Button>Save Changes</Button>
+              <p className="text-muted-foreground">
+                Monthly publishes per platform will show here once publishing to your connected accounts is switched on.
+              </p>
             </CardContent>
           </Card>
         </TabsContent>

@@ -4,6 +4,7 @@ import {
   ResourceInUseException,
   type CreateTableCommandInput,
 } from "@aws-sdk/client-dynamodb"
+import { ENTITIES } from "../amplify/data/entities"
 
 const client = new DynamoDBClient({
   region: process.env.AWS_REGION || "us-east-1",
@@ -12,37 +13,7 @@ const client = new DynamoDBClient({
 
 const prefix = process.env.DYNAMODB_TABLE_PREFIX || "SocialSync"
 
-// Every table shares the same shape: PK "id", plus up to two generic GSIs (gsi1pk/gsi1sk,
-// gsi2pk/gsi2sk) used by lib/db/repository.ts. See the redesign plan section 1.1 for why
-// this "one table per entity, generic GSI" approach was chosen over single-table design.
-const ENTITIES: { name: string; gsi1?: boolean; gsi2?: boolean }[] = [
-  { name: "Users", gsi1: true },
-  { name: "Workspaces", gsi1: true },
-  { name: "WorkspaceMembers", gsi1: true, gsi2: true },
-  { name: "Clients", gsi1: true },
-  { name: "Campaigns", gsi1: true },
-  { name: "Content", gsi1: true, gsi2: true },
-  { name: "Variants", gsi1: true },
-  { name: "Distributions", gsi1: true, gsi2: true },
-  { name: "SocialAccounts", gsi1: true },
-  { name: "CampaignMetrics", gsi1: true },
-  { name: "Leads", gsi1: true },
-  { name: "Communications", gsi1: true },
-  { name: "Products", gsi1: true },
-  { name: "Deals", gsi1: true },
-  { name: "AutomationRules", gsi1: true },
-  { name: "AutomationLogs", gsi1: true },
-  { name: "TrackingAssets", gsi1: true, gsi2: true },
-  { name: "InfluencerCampaigns", gsi1: true },
-  { name: "InfluencerAssignments", gsi1: true },
-  { name: "Affiliates", gsi1: true, gsi2: true },
-  { name: "AffiliateConversions", gsi1: true },
-  { name: "SEOKeywords", gsi1: true },
-  { name: "PPCCampaigns", gsi1: true },
-  { name: "OfflineCampaigns", gsi1: true },
-  { name: "ActivityLogs", gsi1: true },
-  { name: "Invitations", gsi1: true, gsi2: true },
-]
+// Same schema as AWS (amplify/data/tables.ts); this script is for DynamoDB Local only.
 
 function buildTableInput(entity: (typeof ENTITIES)[number]): CreateTableCommandInput {
   const attributeDefinitions = [{ AttributeName: "id", AttributeType: "S" as const }]

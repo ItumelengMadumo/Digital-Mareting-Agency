@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Facebook, Twitter, Instagram, Linkedin, Youtube, Music, Check } from "lucide-react"
-import type { ContentType } from "@/app/dashboard/create-post/page"
+import type { ContentType } from "@/app/dashboard/compose/page"
 import { useState } from "react"
 
 interface PlatformSelectionProps {

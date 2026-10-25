@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
+import { cookies } from "next/headers"
+import { fetchAuthSession } from "aws-amplify/auth/server"
+import { runWithAmplifyServerContext } from "@/lib/amplify-server"
 import { getMembership } from "@/lib/db/workspace-members"
+import { provisionUser } from "@/lib/db/provision-user"
 import type { MemberRole } from "@/lib/types"
 
 const ROLE_RANK: Record<MemberRole, number> = { member: 0, manager: 1, admin: 2, owner: 3 }
@@ -12,11 +14,30 @@ export class HttpError extends Error {
   }
 }
 
+/** Reads the Cognito session from the request cookies and returns the matching SocialSync user. */
 export async function getCurrentUser() {
-  const session = await getServerSession(authOptions)
-  const id = (session?.user as { id?: string } | undefined)?.id
-  if (!id) throw new HttpError(401, "Not authenticated")
-  return { id, email: session!.user!.email as string }
+  const claims = await runWithAmplifyServerContext({
+    nextServerContext: { cookies },
+    operation: async (contextSpec) => {
+      try {
+        const session = await fetchAuthSession(contextSpec)
+        return session.tokens?.idToken?.payload ?? null
+      } catch {
+        return null
+      }
+    },
+  })
+  const email = typeof claims?.email === "string" ? claims.email : null
+  if (!email) throw new HttpError(401, "Not authenticated")
+
+  // The post-confirmation trigger normally creates the user; this covers anyone it missed.
+  const user = await provisionUser({
+    email,
+    cognitoSub: typeof claims?.sub === "string" ? claims.sub : undefined,
+    firstName: typeof claims?.given_name === "string" ? claims.given_name : undefined,
+    lastName: typeof claims?.family_name === "string" ? claims.family_name : undefined,
+  })
+  return { id: user.id, email: user.email }
 }
 
 export async function requireWorkspaceAccess(workspaceId: string, minRole?: MemberRole) {

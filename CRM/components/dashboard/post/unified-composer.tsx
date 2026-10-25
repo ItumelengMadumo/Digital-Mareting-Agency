@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { format } from "date-fns"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -10,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Switch } from "@/components/ui/switch"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle, Upload, Calendar, Clock } from "lucide-react"
-import type { ContentType, PostData } from "@/app/dashboard/create-post/page"
+import type { ContentType, PostData } from "@/app/dashboard/compose/page"
 import PlatformPreview from "./platform-preview"
 import PlatformOverrides from "./platform-overrides"
 
@@ -34,6 +35,14 @@ export default function UnifiedComposer({
   const [link, setLink] = useState(initialData.link || "")
   const [media, setMedia] = useState<File | undefined>(initialData.media)
   const [isScheduled, setIsScheduled] = useState(initialData.isScheduled)
+  // Local date and time from the pickers; combined into a Date (sent to the API as UTC).
+  const [scheduleDay, setScheduleDay] = useState(
+    initialData.scheduleDate ? format(initialData.scheduleDate, "yyyy-MM-dd") : "",
+  )
+  const [scheduleTime, setScheduleTime] = useState(
+    initialData.scheduleDate ? format(initialData.scheduleDate, "HH:mm") : "",
+  )
+  const scheduleDate = scheduleDay && scheduleTime ? new Date(`${scheduleDay}T${scheduleTime}`) : undefined
   const [platformOverrides, setPlatformOverrides] = useState(initialData.platformOverrides)
 
   const getCharLimit = () => {
@@ -61,6 +70,11 @@ export default function UnifiedComposer({
   if (contentType === "image" && !media) {
     warnings.push("Image upload is required for selected platforms")
   }
+  if (isScheduled && !scheduleDate) {
+    warnings.push("Pick a date and time to schedule this post")
+  } else if (isScheduled && scheduleDate && scheduleDate.getTime() < Date.now()) {
+    warnings.push("The scheduled time is in the past")
+  }
 
   const handleSubmit = () => {
     onSubmit({
@@ -69,6 +83,7 @@ export default function UnifiedComposer({
       link: link || undefined,
       media,
       isScheduled,
+      scheduleDate: isScheduled ? scheduleDate : undefined,
       platformOverrides,
     })
   }
@@ -180,13 +195,13 @@ export default function UnifiedComposer({
                   <Label className="flex items-center gap-2">
                     <Calendar className="h-4 w-4" /> Date
                   </Label>
-                  <Input type="date" />
+                  <Input type="date" value={scheduleDay} onChange={(e) => setScheduleDay(e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">
                     <Clock className="h-4 w-4" /> Time
                   </Label>
-                  <Input type="time" />
+                  <Input type="time" value={scheduleTime} onChange={(e) => setScheduleTime(e.target.value)} />
                 </div>
               </div>
             )}

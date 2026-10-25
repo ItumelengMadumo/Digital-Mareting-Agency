@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import {
   ChevronLeft,
   ChevronRight,
@@ -10,7 +10,11 @@ import {
   Instagram,
   Linkedin,
   MoreHorizontal,
+  Music2,
+  Youtube,
 } from "lucide-react"
+import Link from "next/link"
+import { usePosts } from "@/lib/posts"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
@@ -24,58 +28,6 @@ const getFirstDayOfMonth = (year: number, month: number) => {
   return new Date(year, month, 1).getDay()
 }
 
-// Sample post data
-const samplePosts = [
-  {
-    id: 1,
-    date: new Date(2023, 6, 5),
-    content: "Product launch announcement",
-    platforms: ["facebook", "twitter", "instagram"],
-  },
-  {
-    id: 2,
-    date: new Date(2023, 6, 8),
-    content: "Weekly tips and tricks",
-    platforms: ["twitter", "linkedin"],
-  },
-  {
-    id: 3,
-    date: new Date(2023, 6, 12),
-    content: "Customer success story",
-    platforms: ["instagram", "facebook"],
-  },
-  {
-    id: 4,
-    date: new Date(2023, 6, 15),
-    content: "New blog post promotion",
-    platforms: ["twitter", "linkedin"],
-  },
-  {
-    id: 5,
-    date: new Date(2023, 6, 18),
-    content: "Flash sale announcement",
-    platforms: ["facebook", "instagram"],
-  },
-  {
-    id: 6,
-    date: new Date(2023, 6, 22),
-    content: "Industry news roundup",
-    platforms: ["twitter", "linkedin"],
-  },
-  {
-    id: 7,
-    date: new Date(2023, 6, 25),
-    content: "Behind the scenes",
-    platforms: ["instagram", "facebook"],
-  },
-  {
-    id: 8,
-    date: new Date(2023, 6, 28),
-    content: "Monthly newsletter",
-    platforms: ["facebook", "twitter", "linkedin"],
-  },
-]
-
 // Helper function to get platform icon
 const getPlatformIcon = (platform: string) => {
   switch (platform) {
@@ -87,12 +39,36 @@ const getPlatformIcon = (platform: string) => {
       return <Instagram className="h-3 w-3 text-pink-600" />
     case "linkedin":
       return <Linkedin className="h-3 w-3 text-blue-800" />
+    case "youtube":
+    case "youtube_shorts":
+      return <Youtube className="h-3 w-3 text-red-600" />
+    case "tiktok":
+      return <Music2 className="h-3 w-3 text-slate-900" />
     default:
       return null
   }
 }
 
+interface CalendarPost {
+  id: string
+  date: Date
+  content: string
+  platforms: string[]
+}
+
 export default function Calendar() {
+  const { posts } = usePosts()
+  // Scheduled posts sit on their publish time; drafts on the day they were written.
+  const calendarPosts: CalendarPost[] = useMemo(
+    () =>
+      posts.map((p) => ({
+        id: p.id,
+        date: new Date(p.scheduledAt ?? p.createdAt),
+        content: p.captionMaster,
+        platforms: p.variants.map((v) => v.platform),
+      })),
+    [posts],
+  )
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
 
@@ -132,12 +108,12 @@ export default function Calendar() {
   }
 
   // Filter posts for the current month
-  const postsThisMonth = samplePosts.filter(
+  const postsThisMonth = calendarPosts.filter(
     (post) => post.date.getMonth() === currentMonth && post.date.getFullYear() === currentYear,
   )
 
   // Group posts by date
-  const postsByDate: Record<number, typeof samplePosts> = {}
+  const postsByDate: Record<number, CalendarPost[]> = {}
   postsThisMonth.forEach((post) => {
     const day = post.date.getDate()
     if (!postsByDate[day]) {
@@ -211,8 +187,12 @@ export default function Calendar() {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
-                      <DropdownMenuItem>Add Post</DropdownMenuItem>
-                      <DropdownMenuItem>View All</DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/dashboard/compose">Add post</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link href="/dashboard/posts">View all posts</Link>
+                      </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 )}
