@@ -19,7 +19,7 @@ const targets = [
 
 export default function DemoPage() {
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-6 py-10">
+    <div className="mx-auto max-w-5xl space-y-6 px-4 py-10 sm:px-6">
       <div className="flex flex-col gap-4 rounded-lg border bg-blue-50 p-4 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm">
           <strong>Demo mode.</strong> Everything below is sample data. Sign up to publish for real.

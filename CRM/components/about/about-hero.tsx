@@ -1,16 +1,28 @@
+import Image from "next/image"
+import SectionHeading from "@/components/site/section-heading"
+
 export default function AboutHero() {
   return (
-    <div className="relative isolate overflow-hidden py-24 sm:py-32">
-      <div className="mx-auto max-w-7xl px-6 lg:px-8">
-        <div className="mx-auto max-w-2xl lg:mx-0">
-          <h1 className="text-4xl font-bold tracking-tight sm:text-6xl">About SocialSync</h1>
-          <p className="mt-6 text-lg leading-8 text-muted-foreground">
-            SocialSync is a comprehensive social media management platform that empowers creators and businesses to
-            streamline their online presence. Founded in 2023, our mission is to help individuals and organizations save
-            time, increase engagement, and grow their audience across multiple platforms.
+    <section className="bg-gradient-to-br from-slate-50 to-white">
+      <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 sm:py-24 lg:grid-cols-2 lg:px-8">
+        <div>
+          <SectionHeading eyebrow="About SocialSync">
+            Helping creators <em>post once</em> and <span>show up everywhere</span>
+          </SectionHeading>
+          <p className="mt-6 text-lg leading-8 text-slate-600">
+            SocialSync is built by Geekyysolutions in South Africa. We make publishing to Instagram, Facebook, TikTok and
+            YouTube as simple as writing one post, so creators and small businesses can spend their time on the content
+            instead of the copy-pasting.
           </p>
         </div>
+        <Image
+          src="/site/about-left-image.png"
+          alt=""
+          width={600}
+          height={500}
+          className="mx-auto h-auto w-full max-w-lg"
+        />
       </div>
-    </div>
+    </section>
   )
 }

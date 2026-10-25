@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { CheckIcon } from "lucide-react"
@@ -15,7 +16,6 @@ const tiers = [
   {
     name: "Individual",
     id: "individual",
-    href: "#",
     price: { monthly: "$15", annually: "$144" },
     description: "For solo creators managing their own presence.",
     features: [
@@ -31,7 +31,6 @@ const tiers = [
   {
     name: "Freelancer",
     id: "freelancer",
-    href: "#",
     price: { monthly: "$35", annually: "$336" },
     description: "For freelancers managing multiple client accounts.",
     features: [
@@ -48,7 +47,6 @@ const tiers = [
   {
     name: "Business",
     id: "business",
-    href: "#",
     price: { monthly: "$79", annually: "$756" },
     description: "For growing businesses with dedicated marketing teams.",
     features: [
@@ -66,7 +64,6 @@ const tiers = [
   {
     name: "Agency",
     id: "agency",
-    href: "#",
     price: { monthly: "$149", annually: "$1,428" },
     description: "For agencies managing portfolios of clients at scale.",
     features: [
@@ -111,7 +108,13 @@ export default function PricingPlans() {
 
       <div className="mx-auto grid max-w-md grid-cols-1 gap-8 lg:max-w-none lg:grid-cols-4">
         {tiers.map((tier) => (
-          <Card key={tier.id} className={cn("flex flex-col", tier.mostPopular ? "border-blue-500 shadow-md" : "")}>
+          <Card
+            key={tier.id}
+            className={cn(
+              "relative flex flex-col rounded-2xl transition-all hover:-translate-y-1 hover:shadow-xl",
+              tier.mostPopular ? "border-blue-500 shadow-lg shadow-blue-500/10" : "border-slate-200",
+            )}
+          >
             <CardHeader>
               {tier.mostPopular && (
                 <div className="rounded-full bg-blue-500 px-3 py-1 text-center text-xs font-semibold leading-5 text-white absolute -top-3 right-6">
@@ -140,8 +143,12 @@ export default function PricingPlans() {
               </ul>
             </CardContent>
             <CardFooter className="mt-auto">
-              <Button className={cn("w-full", tier.mostPopular ? "bg-blue-500 hover:bg-blue-600" : "")}>
-                Get started
+              <Button
+                className={cn("w-full", tier.mostPopular ? "bg-blue-500 hover:bg-blue-600" : "")}
+                variant={tier.mostPopular ? "default" : "outline"}
+                asChild
+              >
+                <Link href="/auth/register">Start free trial</Link>
               </Button>
             </CardFooter>
           </Card>

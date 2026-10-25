@@ -25,12 +25,12 @@ const values = [
 
 export default function MissionSection() {
   return (
-    <div className="py-24 sm:py-32">
+    <div className="bg-slate-50 py-20 sm:py-24">
       <div className="mx-auto max-w-7xl px-6 lg:px-8">
         <div className="mx-auto grid max-w-2xl grid-cols-1 gap-x-8 gap-y-16 sm:gap-y-20 lg:mx-0 lg:max-w-none lg:grid-cols-2">
           <div className="lg:pr-8 lg:pt-4">
             <div className="lg:max-w-lg">
-              <h2 className="text-base font-semibold leading-7 text-blue-500">Our Mission</h2>
+              <h2 className="text-sm font-semibold uppercase tracking-wider text-blue-500">Our mission</h2>
               <p className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">Empowering digital creators</p>
               <p className="mt-6 text-lg leading-8 text-muted-foreground">
                 Our mission is to democratize social media management by providing accessible, powerful tools that help
@@ -52,14 +52,14 @@ export default function MissionSection() {
           <div className="grid grid-cols-1 grid-rows-2 gap-4 sm:gap-6 lg:gap-8">
             <div className="rounded-xl bg-gradient-to-br from-blue-500/20 to-teal-500/20 p-6 flex items-center justify-center">
               <div className="text-center">
-                <div className="text-5xl font-bold text-blue-500 mb-2">10K+</div>
-                <div className="text-lg font-medium">Active Users</div>
+                <div className="text-5xl font-bold text-blue-500 mb-2">4</div>
+                <div className="text-lg font-medium">Platforms from one post</div>
               </div>
             </div>
-            <div className="rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 p-6 flex items-center justify-center">
+            <div className="rounded-xl bg-gradient-to-br from-green-500/20 to-teal-500/20 p-6 flex items-center justify-center">
               <div className="text-center">
-                <div className="text-5xl font-bold text-purple-500 mb-2">2M+</div>
-                <div className="text-lg font-medium">Posts Published</div>
+                <div className="text-5xl font-bold text-green-500 mb-2">5 min</div>
+                <div className="text-lg font-medium">From sign-up to first post</div>
               </div>
             </div>
           </div>
