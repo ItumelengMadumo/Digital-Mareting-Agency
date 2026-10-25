@@ -9,7 +9,7 @@ applications:
         build:
           commands:
             # Amplify does not expose build env vars to the SSR runtime; write them to .env.production.
-            - env | grep -E '^(NEXTAUTH_|COGNITO_|DYNAMODB_|APP_|CRON_)' >> .env.production
+            - env | grep -E '^(NEXTAUTH_|COGNITO_|DYNAMODB_|APP_|CRON_)' >> .env.production || true
             - npm run build
       artifacts:
         baseDirectory: .next
