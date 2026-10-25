@@ -13,7 +13,7 @@ applications:
       phases:
         build:
           commands:
-            - node scripts/write-runtime-env.mjs
+            - if [ -f scripts/write-runtime-env.mjs ]; then node scripts/write-runtime-env.mjs; fi
             - npm run build
       artifacts:
         baseDirectory: .next
