@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import RegisterForm from "@/components/auth/register-form"
+import AuthForm from "@/components/auth/auth-form"
 
 export const metadata: Metadata = {
   title: "Register - SocialSync",
@@ -10,7 +10,7 @@ export default function RegisterPage() {
   return (
     <div className="flex items-center justify-center min-h-[calc(100vh-150px)]">
       <div className="w-full max-w-md p-6">
-        <RegisterForm />
+        <AuthForm mode="register" />
       </div>
     </div>
   )

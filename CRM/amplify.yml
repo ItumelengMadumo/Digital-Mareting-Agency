@@ -1,0 +1,21 @@
+version: 1
+applications:
+  - appRoot: CRM
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm ci
+        build:
+          commands:
+            # Amplify does not expose build env vars to the SSR runtime; write them to .env.production.
+            - env | grep -E '^(NEXTAUTH_|COGNITO_|DYNAMODB_|APP_|CRON_)' >> .env.production
+            - npm run build
+      artifacts:
+        baseDirectory: .next
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+          - .next/cache/**/*

@@ -2,7 +2,8 @@ import { createRepository, type BaseItem } from "./repository"
 
 export interface UserRecord extends BaseItem {
   email: string
-  passwordHash: string
+  passwordHash?: string
+  cognitoSub?: string
   firstName: string
   lastName: string
   avatarUrl?: string

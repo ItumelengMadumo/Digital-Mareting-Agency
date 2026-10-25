@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Menu, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ModeToggle } from "@/components/mode-toggle"
+import TrialMenu from "@/components/layout/trial-menu"
 
 const navigation = [
   { name: "Home", href: "/" },
@@ -61,9 +62,7 @@ export default function Navbar() {
           <Link href="/auth/login">
             <Button variant="outline">Log in</Button>
           </Link>
-          <Link href="/auth/register">
-            <Button>Sign up</Button>
-          </Link>
+          <TrialMenu />
         </div>
       </nav>
 
@@ -103,9 +102,7 @@ export default function Navbar() {
                     Log in
                   </Button>
                 </Link>
-                <Link href="/auth/register" onClick={() => setMobileMenuOpen(false)}>
-                  <Button className="w-full">Sign up</Button>
-                </Link>
+                <TrialMenu className="w-full" align="center" />
                 <div className="flex justify-end">
                   <ModeToggle />
                 </div>

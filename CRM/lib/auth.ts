@@ -1,43 +1,48 @@
 import type { NextAuthOptions } from "next-auth"
-import CredentialsProvider from "next-auth/providers/credentials"
-import { compare } from "bcryptjs"
-import { getUserByEmail } from "@/lib/db/users"
+import CognitoProvider from "next-auth/providers/cognito"
+import { createUser, getUserByEmail, updateUser } from "@/lib/db/users"
+import { createWorkspace } from "@/lib/db/workspaces"
+import { addMember } from "@/lib/db/workspace-members"
+
+/**
+ * Finds the app user for a Cognito identity, creating the user, their workspace
+ * and the owner membership on first login. Returns the internal user id.
+ */
+async function resolveUser(email: string, sub: string | undefined, name: string | null | undefined) {
+  const existing = await getUserByEmail(email)
+  if (existing) {
+    if (sub && existing.cognitoSub !== sub) await updateUser(existing.id, { cognitoSub: sub })
+    return existing.id
+  }
+
+  const [firstName, ...rest] = (name || email.split("@")[0]).split(" ")
+  const user = await createUser({ email, cognitoSub: sub, firstName, lastName: rest.join(" ") })
+  const workspace = await createWorkspace({
+    name: `${firstName}'s Workspace`,
+    type: "individual",
+    ownerId: user.id,
+  })
+  await addMember(workspace.id, user.id, "owner")
+  return user.id
+}
 
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
   pages: {
     signIn: "/auth/login",
-    newUser: "/auth/register",
   },
   providers: [
-    CredentialsProvider({
-      name: "credentials",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null
-
-        const user = await getUserByEmail(credentials.email)
-        if (!user) return null
-
-        const isValid = await compare(credentials.password, user.passwordHash)
-        if (!isValid) return null
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: `${user.firstName} ${user.lastName}`,
-          image: user.avatarUrl,
-        }
-      },
+    CognitoProvider({
+      clientId: process.env.COGNITO_CLIENT_ID!,
+      clientSecret: process.env.COGNITO_CLIENT_SECRET!,
+      issuer: process.env.COGNITO_ISSUER!,
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.id = user.id
+    async jwt({ token, profile }) {
+      // `profile` is only present on sign-in; afterwards the stored id is reused.
+      if (profile?.email) {
+        token.id = await resolveUser(profile.email, profile.sub, profile.name)
       }
       return token
     },

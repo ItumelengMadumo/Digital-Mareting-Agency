@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { ArrowRight } from "lucide-react"
+import TrialMenu from "@/components/layout/trial-menu"
 import { cn } from "@/lib/utils"
 
 export default function Hero() {
@@ -35,12 +34,7 @@ export default function Hero() {
               accounts. Save time, increase engagement, and grow your presence with our all-in-one solution.
             </p>
             <div className="mt-10 flex items-center gap-x-6">
-              <Link href="/auth/register">
-                <Button size="lg" className="group">
-                  Get started
-                  <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-                </Button>
-              </Link>
+              <TrialMenu size="lg" align="start" />
               <Link href="/pricing" className="text-sm font-semibold leading-6">
                 View pricing <span aria-hidden="true">→</span>
               </Link>
