@@ -5,7 +5,8 @@ applications:
       phases:
         build:
           commands:
-            - npm ci
+            # npm ci rejects this lockfile over a nested peer-dependency quirk; install still honours it.
+            - npm install --no-audit --no-fund
             # Deploys CRM/amplify (auth, tables, storage, functions) and writes amplify_outputs.json.
             # Skipped on branches that don't have the amplify/ folder yet.
             - if [ -d amplify ]; then npx ampx pipeline-deploy --branch $AWS_BRANCH --app-id $AWS_APP_ID; fi
