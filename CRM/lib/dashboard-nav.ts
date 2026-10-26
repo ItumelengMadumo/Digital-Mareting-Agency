@@ -9,6 +9,7 @@ import {
   Home,
   Image,
   Inbox,
+  LayoutGrid,
   Link2,
   Mail,
   Megaphone,
@@ -77,6 +78,7 @@ export const DASHBOARD_NAV: NavGroup[] = [
     collapsible: true,
     defaultOpen: true,
     links: [
+      { name: "Overview", href: "/dashboard/comms", icon: LayoutGrid },
       { name: "Email", href: "/dashboard/comms/email", icon: Mail },
       { name: "SMS", href: "/dashboard/comms/sms", icon: MessageSquare },
       { name: "WhatsApp", href: "/dashboard/comms/whatsapp", icon: MessageCircle },
@@ -128,6 +130,9 @@ export const DASHBOARD_NAV: NavGroup[] = [
   },
 ]
 
+// Section roots only match themselves, so "Overview" isn't highlighted on every comms page.
+const EXACT_MATCH = new Set(["/dashboard", "/dashboard/comms"])
+
 export function isActiveLink(pathname: string, href: string) {
-  return href === "/dashboard" ? pathname === href : pathname === href || pathname.startsWith(`${href}/`)
+  return EXACT_MATCH.has(href) ? pathname === href : pathname === href || pathname.startsWith(`${href}/`)
 }

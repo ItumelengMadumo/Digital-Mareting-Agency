@@ -1,18 +1,8 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import {
-  ChevronLeft,
-  ChevronRight,
-  CalendarIcon,
-  Facebook,
-  Twitter,
-  Instagram,
-  Linkedin,
-  MoreHorizontal,
-  Music2,
-  Youtube,
-} from "lucide-react"
+import { ChevronLeft, ChevronRight, CalendarIcon, MoreHorizontal } from "lucide-react"
+import PlatformIcon from "@/components/platform-icon"
 import Link from "next/link"
 import { usePosts } from "@/lib/posts"
 import { Button } from "@/components/ui/button"
@@ -28,26 +18,7 @@ const getFirstDayOfMonth = (year: number, month: number) => {
   return new Date(year, month, 1).getDay()
 }
 
-// Helper function to get platform icon
-const getPlatformIcon = (platform: string) => {
-  switch (platform) {
-    case "facebook":
-      return <Facebook className="h-3 w-3 text-blue-600" />
-    case "twitter":
-      return <Twitter className="h-3 w-3 text-sky-500" />
-    case "instagram":
-      return <Instagram className="h-3 w-3 text-pink-600" />
-    case "linkedin":
-      return <Linkedin className="h-3 w-3 text-blue-800" />
-    case "youtube":
-    case "youtube_shorts":
-      return <Youtube className="h-3 w-3 text-red-600" />
-    case "tiktok":
-      return <Music2 className="h-3 w-3 text-slate-900" />
-    default:
-      return null
-  }
-}
+const getPlatformIcon = (platform: string) => <PlatformIcon id={platform} className="h-3 w-3" />
 
 interface CalendarPost {
   id: string
@@ -124,18 +95,20 @@ export default function Calendar() {
 
   return (
     <div className="bg-card rounded-lg border shadow-sm overflow-hidden">
-      <div className="p-4 flex justify-between items-center">
-        <div className="flex items-center">
-          <CalendarIcon className="mr-2 h-5 w-5" />
-          <h2 className="text-lg font-medium">Content Calendar</h2>
+      <div className="p-3 sm:p-4 flex justify-between items-center gap-2">
+        <div className="flex items-center min-w-0">
+          <CalendarIcon className="mr-2 h-5 w-5 flex-shrink-0 text-blue-500" />
+          <h2 className="truncate text-base font-semibold sm:text-lg">
+            {monthNames[currentMonth]} {currentYear}
+          </h2>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center gap-1 sm:gap-2">
+          <Button variant="outline" size="sm" onClick={() => setCurrentDate(new Date())}>
+            Today
+          </Button>
           <Button variant="outline" size="icon" onClick={handlePrevMonth}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <div className="text-sm font-medium min-w-[120px] text-center">
-            {monthNames[currentMonth]} {currentYear}
-          </div>
           <Button variant="outline" size="icon" onClick={handleNextMonth}>
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -150,7 +123,7 @@ export default function Calendar() {
         ))}
 
         {Array.from({ length: firstDayOfMonth }).map((_, index) => (
-          <div key={`empty-${index}`} className="bg-card p-2 h-24 sm:h-28 lg:h-32" />
+          <div key={`empty-${index}`} className="bg-card p-2 h-14 sm:h-28 lg:h-32" />
         ))}
 
         {Array.from({ length: daysInMonth }).map((_, index) => {
@@ -164,7 +137,7 @@ export default function Calendar() {
             <div
               key={day}
               className={cn(
-                "bg-card border-t p-1 h-24 sm:h-28 lg:h-32 overflow-hidden",
+                "bg-card border-t p-1 h-14 sm:h-28 lg:h-32 overflow-hidden",
                 isSelected ? "ring-2 ring-primary" : "",
                 isToday ? "bg-muted/50" : "",
               )}
@@ -182,7 +155,7 @@ export default function Calendar() {
                 {hasPosts && (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-5 w-5">
+                      <Button variant="ghost" size="icon" className="hidden h-5 w-5 sm:inline-flex">
                         <MoreHorizontal className="h-3 w-3" />
                       </Button>
                     </DropdownMenuTrigger>
@@ -199,7 +172,14 @@ export default function Calendar() {
               </div>
 
               {hasPosts && (
-                <div className="space-y-1">
+                <div className="flex justify-center gap-0.5 sm:hidden" aria-label={`${postsByDate[day].length} posts`}>
+                  {postsByDate[day].slice(0, 3).map((post) => (
+                    <span key={post.id} className="h-1.5 w-1.5 rounded-full bg-blue-500" />
+                  ))}
+                </div>
+              )}
+              {hasPosts && (
+                <div className="hidden space-y-1 sm:block">
                   {postsByDate[day].slice(0, 2).map((post) => (
                     <div key={post.id} className="text-xs p-1 rounded bg-accent truncate flex items-center">
                       <div className="flex space-x-0.5 mr-1">

@@ -9,7 +9,9 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import PlatformIcon from "@/components/platform-icon"
 import { anyEngagementAvailable } from "@/lib/engagement"
+import { platformLabel } from "@/lib/platforms"
 import { platformState, postView, type PlatformState, type Post } from "@/lib/posts"
 import { cn } from "@/lib/utils"
 
@@ -85,9 +87,13 @@ export default function PostCard({ post }: { post: Post }) {
               return (
                 <span
                   key={v.id}
-                  className={cn("rounded-full border px-2.5 py-0.5 text-xs font-medium capitalize", STATE_STYLES[state])}
+                  className={cn(
+                    "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-xs font-medium",
+                    STATE_STYLES[state],
+                  )}
                 >
-                  {v.platform.replace("_", " ")} · {state}
+                  <PlatformIcon id={v.platform} className="h-3 w-3" />
+                  {platformLabel(v.platform)} · {state}
                 </span>
               )
             })}
@@ -138,11 +144,15 @@ export default function PostCard({ post }: { post: Post }) {
 export function PostsEmptyState({ title, text }: { title: string; text: string }) {
   return (
     <Card className="border-dashed">
-      <CardContent className="flex flex-col items-center gap-3 p-10 text-center">
-        <FileText className="h-10 w-10 text-slate-300" />
-        <h3 className="font-semibold text-slate-800">{title}</h3>
-        <p className="max-w-sm text-sm text-slate-500">{text}</p>
-        <Button asChild className="mt-2 bg-blue-500 hover:bg-blue-600">
+      <CardContent className="flex flex-col items-center gap-4 p-6 text-center sm:flex-row sm:text-left">
+        <span className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-slate-100">
+          <FileText className="h-6 w-6 text-slate-400" />
+        </span>
+        <div className="flex-1">
+          <h3 className="font-semibold text-slate-800">{title}</h3>
+          <p className="text-sm text-slate-500">{text}</p>
+        </div>
+        <Button asChild size="sm" className="bg-blue-500 hover:bg-blue-600">
           <Link href="/dashboard/compose">Compose a post</Link>
         </Button>
       </CardContent>

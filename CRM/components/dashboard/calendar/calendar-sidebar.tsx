@@ -1,183 +1,94 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Facebook, Twitter, Instagram, Linkedin, ChevronDown, Filter, Plus } from "lucide-react"
+import { format } from "date-fns"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import PlatformIcon from "@/components/platform-icon"
+import { SOCIAL_PLATFORMS, getPlatform } from "@/lib/platforms"
+import { postView, usePosts } from "@/lib/posts"
 
-interface PlatformFilterProps {
-  platform: {
-    id: string
-    name: string
-    icon: React.ReactNode
-    color: string
-  }
-  checked: boolean
-  onToggle: () => void
-}
-
-function PlatformFilter({ platform, checked, onToggle }: PlatformFilterProps) {
-  return (
-    <div className="flex items-center space-x-2">
-      <Switch id={platform.id} checked={checked} onCheckedChange={onToggle} />
-      <Label htmlFor={platform.id} className="flex items-center text-sm font-medium cursor-pointer">
-        <span className="mr-2">{platform.icon}</span>
-        {platform.name}
-      </Label>
-    </div>
-  )
-}
-
+/** Summary beside the calendar: what's queued, what's in draft, and which platforms you post to. */
 export default function CalendarSidebar() {
-  const [platforms, setPlatforms] = useState([
-    {
-      id: "facebook",
-      name: "Facebook",
-      icon: <Facebook size={16} className="text-blue-600" />,
-      color: "blue",
-      enabled: true,
-    },
-    {
-      id: "twitter",
-      name: "Twitter",
-      icon: <Twitter size={16} className="text-sky-500" />,
-      color: "sky",
-      enabled: true,
-    },
-    {
-      id: "instagram",
-      name: "Instagram",
-      icon: <Instagram size={16} className="text-pink-600" />,
-      color: "pink",
-      enabled: true,
-    },
-    {
-      id: "linkedin",
-      name: "LinkedIn",
-      icon: <Linkedin size={16} className="text-blue-800" />,
-      color: "blue",
-      enabled: true,
-    },
-  ])
+  const { posts } = usePosts()
 
-  const [expandedSections, setExpandedSections] = useState({
-    platforms: true,
-    status: true,
-  })
-
-  const togglePlatform = (id: string) => {
-    setPlatforms(
-      platforms.map((platform) => (platform.id === id ? { ...platform, enabled: !platform.enabled } : platform)),
-    )
+  const counts = {
+    scheduled: posts.filter((p) => postView(p) === "scheduled").length,
+    draft: posts.filter((p) => postView(p) === "draft").length,
+    published: posts.filter((p) => postView(p) === "published").length,
   }
-
-  const toggleSection = (section: keyof typeof expandedSections) => {
-    setExpandedSections({
-      ...expandedSections,
-      [section]: !expandedSections[section],
-    })
-  }
+  const upcoming = posts
+    .filter((p) => postView(p) === "scheduled" && p.scheduledAt && new Date(p.scheduledAt) >= new Date())
+    .sort((a, b) => a.scheduledAt!.localeCompare(b.scheduledAt!))
+    .slice(0, 6)
+  const used = SOCIAL_PLATFORMS.filter((sp) =>
+    posts.some((p) => p.variants.some((v) => getPlatform(v.platform)?.id === sp.id)),
+  )
 
   return (
-    <div className="h-full border-r bg-muted/30 overflow-hidden">
-      <div className="p-4 border-b flex justify-between items-center">
-        <div className="flex items-center text-sm font-medium">
-          <Filter className="mr-2 h-4 w-4" />
-          Filters
-        </div>
-        <Link href="/dashboard/compose">
-          <Button size="sm">
-            <Plus className="mr-1 h-4 w-4" /> New Post
-          </Button>
-        </Link>
-      </div>
-
-      <ScrollArea className="h-[calc(100%_-_73px)]">
-        <div className="p-4 space-y-6">
-          <div className="space-y-3">
-            <button onClick={() => toggleSection("platforms")} className="flex justify-between items-center w-full">
-              <h3 className="text-sm font-medium">Platforms</h3>
-              <ChevronDown
-                className={`h-4 w-4 transition-transform ${expandedSections.platforms ? "rotate-180" : ""}`}
-              />
-            </button>
-
-            {expandedSections.platforms && (
-              <div className="space-y-2 pl-1">
-                {platforms.map((platform) => (
-                  <PlatformFilter
-                    key={platform.id}
-                    platform={platform}
-                    checked={platform.enabled}
-                    onToggle={() => togglePlatform(platform.id)}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-3">
-            <button onClick={() => toggleSection("status")} className="flex justify-between items-center w-full">
-              <h3 className="text-sm font-medium">Post Status</h3>
-              <ChevronDown className={`h-4 w-4 transition-transform ${expandedSections.status ? "rotate-180" : ""}`} />
-            </button>
-
-            {expandedSections.status && (
-              <div className="space-y-2 pl-1">
-                <div className="flex items-center space-x-2">
-                  <Switch id="scheduled" defaultChecked />
-                  <Label htmlFor="scheduled">Scheduled</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch id="published" defaultChecked />
-                  <Label htmlFor="published">Published</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch id="draft" defaultChecked />
-                  <Label htmlFor="draft">Draft</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch id="failed" defaultChecked />
-                  <Label htmlFor="failed">Failed</Label>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <div className="space-y-3">
-            <h3 className="text-sm font-medium">Date Range</h3>
-            <div className="grid gap-2">
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <Label htmlFor="from" className="sr-only">
-                    From
-                  </Label>
-                  <Input id="from" type="date" placeholder="From" className="h-8" />
-                </div>
-                <div>
-                  <Label htmlFor="to" className="sr-only">
-                    To
-                  </Label>
-                  <Input id="to" type="date" placeholder="To" className="h-8" />
-                </div>
-              </div>
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Overview</CardTitle>
+        </CardHeader>
+        <CardContent className="grid grid-cols-3 gap-2 text-center">
+          {[
+            { label: "Scheduled", value: counts.scheduled, tint: "bg-blue-50 text-blue-700" },
+            { label: "Drafts", value: counts.draft, tint: "bg-slate-100 text-slate-700" },
+            { label: "Published", value: counts.published, tint: "bg-green-50 text-green-700" },
+          ].map((c) => (
+            <div key={c.label} className={`rounded-lg p-2 ${c.tint}`}>
+              <p className="text-xl font-bold">{c.value}</p>
+              <p className="text-xs">{c.label}</p>
             </div>
-          </div>
+          ))}
+        </CardContent>
+      </Card>
 
-          <div className="pt-4 flex justify-between">
-            <Button variant="outline" size="sm">
-              Reset
-            </Button>
-            <Button size="sm">Apply Filters</Button>
-          </div>
-        </div>
-      </ScrollArea>
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Up next</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {upcoming.length === 0 ? (
+            <p className="text-sm text-slate-500">
+              Nothing scheduled.{" "}
+              <Link href="/dashboard/compose" className="text-blue-600 hover:underline">
+                Schedule a post
+              </Link>
+            </p>
+          ) : (
+            <ul className="space-y-3">
+              {upcoming.map((p) => (
+                <li key={p.id} className="text-sm">
+                  <p className="font-medium text-slate-800">{format(new Date(p.scheduledAt!), "EEE d MMM, HH:mm")}</p>
+                  <p className="line-clamp-1 text-slate-500">{p.captionMaster}</p>
+                  <div className="mt-1 flex gap-1">
+                    {p.variants.map((v) => (
+                      <PlatformIcon key={v.id} id={v.platform} className="h-3.5 w-3.5" />
+                    ))}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
+      {used.length > 0 && (
+        <Card className="sm:col-span-2 xl:col-span-1">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">Platforms on your calendar</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-wrap gap-2">
+            {used.map((p) => (
+              <span key={p.id} className="flex items-center gap-1.5 rounded-full bg-slate-100 px-2.5 py-1 text-xs">
+                <PlatformIcon id={p.id} className="h-3.5 w-3.5" />
+                {p.label}
+              </span>
+            ))}
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }

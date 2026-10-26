@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Textarea } from "@/components/ui/textarea"
+import PageHeader from "@/components/dashboard/page-header"
 import { initials, useCurrentUser } from "@/lib/use-current-user"
 
 const EMPTY = { firstName: "", lastName: "", handle: "", phone: "", bio: "", timezone: "", avatarUrl: "" }
@@ -56,18 +57,16 @@ export default function ProfilePage() {
     }
   }
 
-  if (loading) return <Skeleton className="mx-auto h-96 w-full max-w-3xl rounded-xl" />
+  if (loading) return <Skeleton className="mx-auto h-96 w-full max-w-7xl rounded-xl" />
   if (!user) return <p className="text-sm text-red-600">Could not load your profile. Try refreshing the page.</p>
 
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Profile</h1>
-        <p className="mt-1 text-muted-foreground">How you appear in SocialSync.</p>
-      </div>
+    <div className="mx-auto w-full max-w-7xl space-y-4 sm:space-y-6">
+      <PageHeader title="Profile" description="How you appear in SocialSync." />
 
-      <Card>
-        <CardContent className="flex flex-col items-center gap-4 p-6 text-center sm:flex-row sm:text-left">
+      <div className="grid items-start gap-4 lg:grid-cols-3">
+      <Card className="lg:sticky lg:top-20">
+        <CardContent className="flex flex-col items-center gap-4 p-6 text-center">
           <Avatar className="h-20 w-20">
             {form.avatarUrl && <AvatarImage src={form.avatarUrl} alt="" />}
             <AvatarFallback className="bg-blue-100 text-2xl font-semibold text-blue-700">{initials(user)}</AvatarFallback>
@@ -78,13 +77,15 @@ export default function ProfilePage() {
             </p>
             {form.handle && <p className="text-blue-600">@{form.handle}</p>}
             <p className="text-sm text-slate-500">
-              {user.email} · member since {format(new Date(user.createdAt), "MMMM yyyy")}
+              {user.email}
             </p>
+            <p className="text-xs text-slate-400">Member since {format(new Date(user.createdAt), "MMMM yyyy")}</p>
+            {form.bio && <p className="mt-3 text-sm text-slate-600">{form.bio}</p>}
           </div>
         </CardContent>
       </Card>
 
-      <form onSubmit={handleSave}>
+      <form onSubmit={handleSave} className="lg:col-span-2">
         <Card>
           <CardHeader>
             <CardTitle>Details</CardTitle>
@@ -130,6 +131,7 @@ export default function ProfilePage() {
           </CardFooter>
         </Card>
       </form>
+      </div>
     </div>
   )
 }

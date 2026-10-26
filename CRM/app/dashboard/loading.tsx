@@ -1,18 +1,25 @@
-"use client"
+import { Skeleton } from "@/components/ui/skeleton"
 
-import { Card, CardContent } from "@/components/ui/card"
-import { Loader2 } from "lucide-react"
-
+// Shown the moment you switch pages, while the next page loads.
 export default function DashboardLoading() {
   return (
-    <div className="flex items-center justify-center min-h-[60vh]">
-      <Card className="w-full max-w-sm">
-        <CardContent className="flex flex-col items-center justify-center p-8">
-          <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-          <h2 className="text-lg font-semibold mb-2">Loading Dashboard...</h2>
-          <p className="text-sm text-muted-foreground text-center">Preparing your social media management tools</p>
-        </CardContent>
-      </Card>
+    <div className="mx-auto w-full max-w-7xl space-y-4" aria-busy="true" aria-label="Loading">
+      <div className="space-y-2">
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-4 w-72 max-w-full" />
+      </div>
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-20 rounded-xl" />
+        ))}
+      </div>
+      <div className="grid gap-4 lg:grid-cols-3">
+        <div className="space-y-4 lg:col-span-2">
+          <Skeleton className="h-36 rounded-xl" />
+          <Skeleton className="h-36 rounded-xl" />
+        </div>
+        <Skeleton className="h-72 rounded-xl" />
+      </div>
     </div>
   )
 }

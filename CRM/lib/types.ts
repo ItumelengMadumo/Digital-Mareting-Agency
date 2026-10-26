@@ -99,11 +99,15 @@ export type Platform =
   | "tiktok"
   | "twitter"
   | "linkedin"
+  | "threads"
+  | "pinterest"
+  | "bluesky"
+  | "reddit"
   | "whatsapp"
   | "sms"
   | "email"
 
-export type VariantFormat = "9:16" | "1:1" | "16:9" | "4:5"
+export type VariantFormat = "9:16" | "1:1" | "16:9" | "4:5" | "2:3"
 export type VariantStatus = "pending" | "ready" | "published" | "failed"
 
 export interface Variant {
@@ -125,8 +129,12 @@ export const PLATFORM_RULES: Record<Platform, { label: string; formats: VariantF
   youtube:        { label: "YouTube",        formats: ["16:9"],               maxCaption: 5000,  features: ["seo", "tags", "description"] },
   youtube_shorts: { label: "YouTube Shorts", formats: ["9:16"],               maxCaption: 100,   features: ["short_form"] },
   tiktok:         { label: "TikTok",         formats: ["9:16"],               maxCaption: 2200,  features: ["short_form", "sounds"] },
-  twitter:        { label: "Twitter/X",      formats: ["16:9", "1:1"],        maxCaption: 280,   features: ["thread", "poll"] },
+  twitter:        { label: "X (Twitter)",      formats: ["16:9", "1:1"],        maxCaption: 280,   features: ["thread", "poll"] },
   linkedin:       { label: "LinkedIn",       formats: ["1:1", "16:9"],        maxCaption: 3000,  features: ["professional", "articles"] },
+  threads:        { label: "Threads",        formats: ["1:1", "4:5", "9:16"], maxCaption: 500,   features: ["short_form"] },
+  pinterest:      { label: "Pinterest",      formats: ["2:3", "1:1"], maxCaption: 500, features: ["pins", "links"] },
+  bluesky:        { label: "Bluesky",        formats: ["16:9", "1:1"],        maxCaption: 300,   features: ["short_form"] },
+  reddit:         { label: "Reddit",         formats: ["16:9", "1:1"],        maxCaption: 40000, features: ["title", "subreddit"] },
   whatsapp:       { label: "WhatsApp",       formats: [],                     maxCaption: 1000,  features: ["message_format"] },
   sms:            { label: "SMS",            formats: [],                     maxCaption: 160,   features: ["text_cta"] },
   email:          { label: "Email",          formats: [],                     maxCaption: 99999, features: ["html", "subject", "attachments"] },
@@ -145,6 +153,10 @@ export const PLATFORM_DISTRIBUTION: Record<Platform, { canAuto: boolean; require
   tiktok:         { canAuto: true, assistedFlow: ["copy_caption", "download_media", "open_tiktok"] },
   twitter:        { canAuto: true },
   linkedin:       { canAuto: true },
+  threads:        { canAuto: true },
+  pinterest:      { canAuto: true, requiresBusinessAccount: true },
+  bluesky:        { canAuto: true },
+  reddit:         { canAuto: true },
   whatsapp:       { canAuto: false, assistedFlow: ["open_chat", "prefill_message"] },
   sms:            { canAuto: true },
   email:          { canAuto: true },

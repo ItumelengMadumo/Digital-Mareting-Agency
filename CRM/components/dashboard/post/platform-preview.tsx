@@ -1,7 +1,9 @@
 "use client"
 
-import { Facebook, Twitter, Instagram, Linkedin, Youtube, Music } from "lucide-react"
 import type { ContentType } from "@/app/dashboard/compose/page"
+import PlatformIcon from "@/components/platform-icon"
+import { getPlatform } from "@/lib/platforms"
+import { displayName, useCurrentUser } from "@/lib/use-current-user"
 
 interface PlatformPreviewProps {
   platform: string
@@ -11,35 +13,11 @@ interface PlatformPreviewProps {
 }
 
 export default function PlatformPreview({ platform, caption, hashtags, contentType }: PlatformPreviewProps) {
-  const getIcon = () => {
-    switch (platform) {
-      case "facebook":
-        return <Facebook className="h-5 w-5 text-blue-600" />
-      case "twitter":
-        return <Twitter className="h-5 w-5 text-sky-500" />
-      case "instagram":
-        return <Instagram className="h-5 w-5 text-pink-600" />
-      case "linkedin":
-        return <Linkedin className="h-5 w-5 text-blue-800" />
-      case "youtube":
-        return <Youtube className="h-5 w-5 text-red-600" />
-      case "tiktok":
-        return <Music className="h-5 w-5 text-black" />
-      default:
-        return null
-    }
-  }
+  const { user } = useCurrentUser()
+  const getIcon = () => <PlatformIcon id={platform} className="h-5 w-5" />
 
   const getTruncatedCaption = () => {
-    const limits: Record<string, number> = {
-      twitter: 280,
-      facebook: 63206,
-      instagram: 2200,
-      linkedin: 3000,
-      youtube: 5000,
-      tiktok: 2200,
-    }
-    const limit = limits[platform] || 5000
+    const limit = getPlatform(platform)?.maxCaption ?? 5000
     if (caption.length > limit) {
       return caption.substring(0, limit) + "..."
     }
@@ -51,7 +29,7 @@ export default function PlatformPreview({ platform, caption, hashtags, contentTy
       <div className="flex items-start gap-3 mb-4">
         <div className="h-10 w-10 rounded-full bg-slate-200 flex items-center justify-center">{getIcon()}</div>
         <div className="flex-1">
-          <p className="font-semibold text-sm">Your Brand Name</p>
+          <p className="font-semibold text-sm">{user?.handle ? `@${user.handle}` : displayName(user) || "You"}</p>
           <p className="text-xs text-muted-foreground">Just now</p>
         </div>
       </div>

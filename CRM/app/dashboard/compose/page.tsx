@@ -1,6 +1,7 @@
 "use client"
-import { useEffect, useState } from "react"
+import { Suspense, useEffect, useState } from "react"
 import Link from "next/link"
+import { useSearchParams } from "next/navigation"
 import { uploadData } from "aws-amplify/storage"
 import ContentTypeSelection from "@/components/dashboard/post/content-type-selection"
 import PlatformSelection from "@/components/dashboard/post/platform-selection"
@@ -10,9 +11,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useWorkspace } from "@/lib/workspace-context"
+import { usePosts } from "@/lib/posts"
+import PageHeader from "@/components/dashboard/page-header"
+import { cn } from "@/lib/utils"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { CheckCircle2, Megaphone } from "lucide-react"
+import { Check, CheckCircle2, Megaphone } from "lucide-react"
+
+const STEPS = ["Type", "Platforms", "Write", "Review", "Saved"]
 
 export type ContentType = "short-video" | "image" | "text" | "long-video" | "link"
 
@@ -48,8 +54,10 @@ async function uploadMedia(file: File) {
   return path
 }
 
-export default function ComposePage() {
+function ComposeView() {
   const { workspace, workspaceLoaded } = useWorkspace()
+  const { reload: reloadPosts } = usePosts()
+  const searchParams = useSearchParams()
   const [step, setStep] = useState(1)
   const [campaigns, setCampaigns] = useState<{ id: string; name: string }[]>([])
   const [saving, setSaving] = useState(false)
@@ -57,7 +65,8 @@ export default function ComposePage() {
   const [postData, setPostData] = useState<PostData>({
     contentType: "image",
     platforms: [],
-    caption: "",
+    // Prefilled from the quick composer on Home.
+    caption: searchParams.get("caption") ?? "",
     hashtags: "",
     platformOverrides: {},
     isScheduled: false,
@@ -123,6 +132,7 @@ export default function ComposePage() {
         }),
       })
       if (!variantsRes.ok) throw new Error("The post was saved, but its platform versions were not")
+      reloadPosts()
       setStep(5)
     } catch (error) {
       setSaveError(error instanceof Error ? error.message : "Could not save the post")
@@ -146,20 +156,18 @@ export default function ComposePage() {
 
   return (
     <div className="w-full">
-      <div className="max-w-6xl mx-auto space-y-6">
+      <div className="mx-auto max-w-7xl space-y-4 sm:space-y-6">
         <div className="flex flex-col space-y-4">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Compose</h1>
-            <p className="mt-1 text-muted-foreground">Write once, then shape it for each platform.</p>
-          </div>
+          <PageHeader title="Compose" description="Write once, then shape it for each platform." />
 
-          {/* Campaign Link (optional) */}
+          {/* Campaign link (optional) - only when the workspace has campaigns */}
+          {campaigns.length > 0 && (
           <Card className="border-dashed">
-            <CardContent className="p-4">
+            <CardContent className="p-3 sm:p-4">
               <div className="flex items-center gap-4">
                 <Megaphone className="h-5 w-5 text-muted-foreground shrink-0" />
                 <div className="flex-1">
-                  <Label className="text-sm font-medium">Link to Campaign (optional)</Label>
+                  <Label className="text-sm font-medium">Link to campaign (optional)</Label>
                   <Select
                     value={postData.campaignId || "none"}
                     onValueChange={(v) => setPostData({ ...postData, campaignId: v === "none" ? undefined : v })}
@@ -178,38 +186,37 @@ export default function ComposePage() {
               </div>
             </CardContent>
           </Card>
+          )}
 
-          <div className="flex flex-wrap items-center gap-2">
-            {[1, 2, 3, 4, 5].map((s) => (
-              <div key={s} className="flex items-center gap-2">
-                <div
-                  className={`h-8 w-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                    s === step
-                      ? "bg-blue-600 text-white"
-                      : s < step
-                        ? "bg-green-600 text-white"
-                        : "bg-slate-200 text-slate-600"
-                  }`}
-                >
-                  {s}
-                </div>
-                {s < 5 && <div className={`h-0.5 w-6 sm:w-12 ${s < step ? "bg-green-600" : "bg-slate-200"}`} />}
-              </div>
-            ))}
-          </div>
-          <div className="text-sm text-muted-foreground">
-            {step === 1 && "Step 1: Choose your content type"}
-            {step === 2 && "Step 2: Select compatible platforms"}
-            {step === 3 && "Step 3: Create your content"}
-            {step === 4 && "Step 4: Review and validate"}
-            {step === 5 && "Step 5: Saved"}
-          </div>
+          <ol className="-mx-3 flex items-center gap-1 overflow-x-auto px-3 sm:mx-0 sm:px-0" aria-label="Progress">
+            {STEPS.map((label, i) => {
+              const s = i + 1
+              const done = s < step
+              const current = s === step
+              return (
+                <li key={label} className="flex flex-shrink-0 items-center gap-1">
+                  <span
+                    className={cn(
+                      "flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium",
+                      current ? "bg-blue-500 text-white" : done ? "bg-green-50 text-green-700" : "bg-white text-slate-500 ring-1 ring-slate-200",
+                    )}
+                    aria-current={current ? "step" : undefined}
+                  >
+                    {done ? <Check className="h-4 w-4" /> : <span className="text-xs">{s}</span>}
+                    {label}
+                  </span>
+                  {s < STEPS.length && <span className={cn("h-px w-4 sm:w-8", done ? "bg-green-400" : "bg-slate-200")} />}
+                </li>
+              )
+            })}
+          </ol>
         </div>
 
         {step === 1 && <ContentTypeSelection onSelect={handleContentTypeSelect} />}
         {step === 2 && (
           <PlatformSelection
             contentType={postData.contentType}
+            initialSelected={postData.platforms}
             onSelect={handlePlatformsSelect}
             onBack={() => setStep(1)}
           />
@@ -265,5 +272,13 @@ export default function ComposePage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function ComposePage() {
+  return (
+    <Suspense>
+      <ComposeView />
+    </Suspense>
   )
 }

@@ -13,6 +13,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { AlertCircle, Upload, Calendar, Clock } from "lucide-react"
 import type { ContentType, PostData } from "@/app/dashboard/compose/page"
 import PlatformPreview from "./platform-preview"
+import PlatformIcon from "@/components/platform-icon"
+import { getPlatform, platformLabel } from "@/lib/platforms"
 import PlatformOverrides from "./platform-overrides"
 
 interface UnifiedComposerProps {
@@ -46,23 +48,18 @@ export default function UnifiedComposer({
   const [platformOverrides, setPlatformOverrides] = useState(initialData.platformOverrides)
 
   const getCharLimit = () => {
-    const limits: Record<string, number> = {
-      twitter: 280,
-      facebook: 63206,
-      instagram: 2200,
-      linkedin: 3000,
-      youtube: 5000,
-      tiktok: 2200,
-    }
-    const selectedLimits = platforms.map((p) => limits[p] || 5000)
+    const selectedLimits = platforms.map((p) => getPlatform(p)?.maxCaption ?? 5000)
     return Math.min(...selectedLimits)
   }
 
   const charLimit = getCharLimit()
   const warnings = []
 
-  if (platforms.includes("twitter") && caption.length > 280) {
-    warnings.push("Caption will be truncated for Twitter (280 char limit)")
+  for (const p of platforms) {
+    const rules = getPlatform(p)
+    if (rules && caption.length > rules.maxCaption) {
+      warnings.push(`Caption will be shortened for ${rules.label} (${rules.maxCaption.toLocaleString()} character limit)`)
+    }
   }
   if ((contentType === "short-video" || contentType === "long-video") && !media) {
     warnings.push("Video upload is required for selected platforms")
@@ -217,10 +214,11 @@ export default function UnifiedComposer({
         </CardHeader>
         <CardContent>
           <Tabs defaultValue={platforms[0]}>
-            <TabsList className="grid w-full" style={{ gridTemplateColumns: `repeat(${platforms.length}, 1fr)` }}>
+            <TabsList className="flex h-auto w-full justify-start gap-1 overflow-x-auto">
               {platforms.map((platform) => (
-                <TabsTrigger key={platform} value={platform} className="capitalize">
-                  {platform}
+                <TabsTrigger key={platform} value={platform} className="flex-shrink-0 gap-1.5">
+                  <PlatformIcon id={platform} />
+                  {platformLabel(platform)}
                 </TabsTrigger>
               ))}
             </TabsList>

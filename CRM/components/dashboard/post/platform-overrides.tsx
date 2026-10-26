@@ -7,6 +7,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ChevronDown, ChevronUp } from "lucide-react"
+import PlatformIcon from "@/components/platform-icon"
+import { getPlatform, platformLabel } from "@/lib/platforms"
 
 interface PlatformOverridesProps {
   platforms: string[]
@@ -51,15 +53,25 @@ export default function PlatformOverrides({ platforms, overrides, onChange, base
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {platforms.map((platform) => (
+        {platforms.map((platform) => {
+          const rules = getPlatform(platform)
+          const caption = overrides[platform]?.caption || baseCaption
+          return (
           <div key={platform} className="border rounded-lg p-4 space-y-3">
-            <h4 className="font-semibold capitalize">{platform}</h4>
+            <h4 className="flex items-center gap-2 font-semibold">
+              <PlatformIcon id={platform} />
+              {platformLabel(platform)}
+            </h4>
 
-            {platform === "youtube" && (
+            {rules?.title && (
               <div className="space-y-2">
-                <Label>Video Title</Label>
+                <Label>
+                  {rules.title.label}
+                  {rules.title.required && <span className="text-red-500"> *</span>}
+                </Label>
                 <Input
-                  placeholder="Custom title for YouTube"
+                  placeholder={`${rules.title.label} for ${rules.label}`}
+                  maxLength={rules.title.max}
                   value={overrides[platform]?.title || ""}
                   onChange={(e) => updateOverride(platform, "title", e.target.value)}
                 />
@@ -67,7 +79,14 @@ export default function PlatformOverrides({ platforms, overrides, onChange, base
             )}
 
             <div className="space-y-2">
-              <Label>Custom Caption</Label>
+              <div className="flex items-center justify-between">
+                <Label>Custom caption</Label>
+                {rules && (
+                  <span className={caption.length > rules.maxCaption ? "text-xs text-red-600" : "text-xs text-slate-500"}>
+                    {caption.length.toLocaleString()} / {rules.maxCaption.toLocaleString()}
+                  </span>
+                )}
+              </div>
               <Textarea
                 placeholder={`Leave empty to use default caption: "${baseCaption.substring(0, 50)}..."`}
                 value={overrides[platform]?.caption || ""}
@@ -76,7 +95,8 @@ export default function PlatformOverrides({ platforms, overrides, onChange, base
               />
             </div>
           </div>
-        ))}
+          )
+        })}
       </CardContent>
     </Card>
   )

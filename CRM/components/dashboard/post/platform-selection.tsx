@@ -1,143 +1,125 @@
 "use client"
 
+import { useState } from "react"
+import { Check, TriangleAlert } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
-import { Facebook, Twitter, Instagram, Linkedin, Youtube, Music, Check } from "lucide-react"
+import PlatformIcon from "@/components/platform-icon"
+import { SOCIAL_PLATFORMS, type SocialPlatform } from "@/lib/platforms"
 import type { ContentType } from "@/app/dashboard/compose/page"
-import { useState } from "react"
+import { cn } from "@/lib/utils"
 
 interface PlatformSelectionProps {
   contentType: ContentType
+  initialSelected?: string[]
   onSelect: (platforms: string[]) => void
   onBack: () => void
 }
 
-const platformCompatibility = {
-  "short-video": ["tiktok", "instagram", "youtube", "facebook"],
-  image: ["instagram", "facebook", "twitter", "linkedin"],
-  text: ["twitter", "linkedin", "facebook"],
-  "long-video": ["youtube", "facebook", "linkedin"],
-  link: ["twitter", "linkedin", "facebook"],
+const KIND_LABEL: Record<ContentType, string> = {
+  "short-video": "short video",
+  "long-video": "long video",
+  image: "image",
+  text: "text",
+  link: "link",
 }
 
-const platforms = [
-  {
-    id: "tiktok",
-    name: "TikTok",
-    icon: Music,
-    color: "text-black",
-    capabilities: ["Short Video", "Hashtags", "Vertical Only"],
-  },
-  {
-    id: "instagram",
-    name: "Instagram",
-    icon: Instagram,
-    color: "text-pink-600",
-    capabilities: ["Images", "Video", "Reels", "Carousel"],
-  },
-  {
-    id: "facebook",
-    name: "Facebook",
-    icon: Facebook,
-    color: "text-blue-600",
-    capabilities: ["All Content", "Links", "Long Videos"],
-  },
-  {
-    id: "twitter",
-    name: "X (Twitter)",
-    icon: Twitter,
-    color: "text-sky-500",
-    capabilities: ["Text", "Images", "Short Video", "Links"],
-  },
-  {
-    id: "linkedin",
-    name: "LinkedIn",
-    icon: Linkedin,
-    color: "text-blue-800",
-    capabilities: ["Professional", "Articles", "Documents"],
-  },
-  {
-    id: "youtube",
-    name: "YouTube",
-    icon: Youtube,
-    color: "text-red-600",
-    capabilities: ["Video Only", "Shorts", "Long Form"],
-  },
-]
+export default function PlatformSelection({ contentType, initialSelected = [], onSelect, onBack }: PlatformSelectionProps) {
+  const [selected, setSelected] = useState<string[]>(initialSelected)
+  const compatible = SOCIAL_PLATFORMS.filter((p) => p.contentKinds.includes(contentType))
+  const incompatible = SOCIAL_PLATFORMS.filter((p) => !p.contentKinds.includes(contentType))
 
-export default function PlatformSelection({ contentType, onSelect, onBack }: PlatformSelectionProps) {
-  const compatiblePlatforms = platformCompatibility[contentType] || []
-  const [selectedPlatforms, setSelectedPlatforms] = useState<string[]>([])
+  const toggle = (id: string) =>
+    setSelected((prev) => (prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id]))
 
-  const togglePlatform = (platformId: string) => {
-    setSelectedPlatforms((prev) =>
-      prev.includes(platformId) ? prev.filter((id) => id !== platformId) : [...prev, platformId],
+  const allSelected = compatible.length > 0 && compatible.every((p) => selected.includes(p.id))
+
+  const renderTile = (platform: SocialPlatform, enabled: boolean) => {
+    const isSelected = selected.includes(platform.id)
+    return (
+      <button
+        key={platform.id}
+        type="button"
+        onClick={() => enabled && toggle(platform.id)}
+        disabled={!enabled}
+        aria-pressed={isSelected}
+        className={cn(
+          "relative flex items-start gap-3 rounded-xl border-2 p-3 text-left transition-all sm:p-4",
+          isSelected
+            ? "border-blue-500 bg-blue-50"
+            : enabled
+              ? "border-slate-200 bg-white hover:border-blue-300 hover:bg-slate-50"
+              : "cursor-not-allowed border-slate-100 bg-slate-50 opacity-50",
+        )}
+      >
+        <span className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-white shadow-sm ring-1 ring-slate-200">
+          <PlatformIcon id={platform.id} className="h-5 w-5" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block text-sm font-semibold text-slate-900">{platform.label}</span>
+          <span className="block truncate text-xs text-slate-500">{platform.capabilities.join(" · ")}</span>
+          {enabled && platform.warning && (
+            <span className="mt-1 flex items-center gap-1 text-xs text-amber-700">
+              <TriangleAlert className="h-3 w-3" /> Paid add-on
+            </span>
+          )}
+        </span>
+        {isSelected && (
+          <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-blue-500">
+            <Check className="h-3 w-3 text-white" />
+          </span>
+        )}
+      </button>
     )
   }
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Select Platforms</CardTitle>
-        <CardDescription>
-          Based on your content type ({contentType.replace("-", " ")}), these platforms are compatible
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {platforms.map((platform) => {
-            const Icon = platform.icon
-            const isCompatible = compatiblePlatforms.includes(platform.id)
-            const isSelected = selectedPlatforms.includes(platform.id)
-
-            return (
-              <button
-                key={platform.id}
-                onClick={() => isCompatible && togglePlatform(platform.id)}
-                disabled={!isCompatible}
-                className={`relative border-2 rounded-lg p-5 text-left transition-all ${
-                  isSelected
-                    ? "border-blue-600 bg-blue-50"
-                    : isCompatible
-                      ? "border-slate-200 hover:border-blue-400 bg-white hover:bg-slate-50"
-                      : "border-slate-200 bg-slate-50 opacity-50 cursor-not-allowed"
-                }`}
-              >
-                {isSelected && (
-                  <div className="absolute top-3 right-3 h-6 w-6 bg-blue-600 rounded-full flex items-center justify-center">
-                    <Check className="h-4 w-4 text-white" />
-                  </div>
-                )}
-                <div className="flex flex-col space-y-3">
-                  <div className={platform.color}>
-                    <Icon className="h-8 w-8" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-base mb-2">{platform.name}</h3>
-                    <div className="flex flex-wrap gap-1">
-                      {platform.capabilities.map((cap) => (
-                        <Badge key={cap} variant="secondary" className="text-xs">
-                          {cap}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                  {!isCompatible && (
-                    <p className="text-xs text-red-600 font-medium">Not compatible with {contentType}</p>
-                  )}
-                </div>
-              </button>
-            )
-          })}
+      <CardHeader className="flex flex-col gap-3 space-y-0 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <CardTitle>Where should it go?</CardTitle>
+          <CardDescription>
+            {compatible.length} platforms take {KIND_LABEL[contentType]} posts.
+          </CardDescription>
         </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setSelected(allSelected ? [] : compatible.map((p) => p.id))}
+        >
+          {allSelected ? "Clear all" : "Select all"}
+        </Button>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {compatible.map((p) => renderTile(p, true))}
+        </div>
+        {incompatible.length > 0 && (
+          <div>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+              Not available for {KIND_LABEL[contentType]}
+            </p>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-5">
+              {incompatible.map((p) => (
+                <div key={p.id} className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-400">
+                  <PlatformIcon id={p.id} colored={false} />
+                  {p.label}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </CardContent>
-      <CardFooter className="flex justify-between">
+      <CardFooter className="flex justify-between gap-3">
         <Button variant="outline" onClick={onBack}>
           Back
         </Button>
-        <Button disabled={selectedPlatforms.length === 0} onClick={() => onSelect(selectedPlatforms)}>
-          Continue ({selectedPlatforms.length} selected)
+        <Button
+          disabled={selected.length === 0}
+          onClick={() => onSelect(selected)}
+          className="bg-blue-500 hover:bg-blue-600"
+        >
+          Continue ({selected.length})
         </Button>
       </CardFooter>
     </Card>

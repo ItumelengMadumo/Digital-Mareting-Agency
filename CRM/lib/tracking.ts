@@ -1,5 +1,6 @@
 // ─── Tracking Utilities ─────────────────────────────────────
 // UTM links, QR codes, promo codes, short links
+import { getPlatform } from "./platforms"
 
 export function buildUtmLink(params: {
   baseUrl: string
@@ -63,8 +64,11 @@ export function generateVariantCaption(masterCaption: string, platform: string):
     case "whatsapp":
       // Message format with emoji-friendly text
       return masterCaption
-    default:
-      return masterCaption
+    default: {
+      // Keep within the platform's caption limit (e.g. Bluesky 300, Threads 500)
+      const max = getPlatform(platform)?.maxCaption
+      return max && masterCaption.length > max ? masterCaption.substring(0, max - 3) + "..." : masterCaption
+    }
   }
 }
 
@@ -77,6 +81,10 @@ export function getRecommendedFormat(platform: string): string {
     tiktok: "9:16",
     twitter: "16:9",
     linkedin: "1:1",
+    threads: "4:5",
+    pinterest: "2:3",
+    bluesky: "16:9",
+    reddit: "16:9",
   }
   return formats[platform] || "1:1"
 }

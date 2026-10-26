@@ -7,6 +7,7 @@ import { FileVideo, ImageIcon, Trash2, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
+import PageHeader from "@/components/dashboard/page-header"
 
 interface MediaItem {
   path: string
@@ -15,6 +16,11 @@ interface MediaItem {
   lastModified?: Date
   url?: string
   isVideo: boolean
+}
+
+function formatBytes(bytes: number) {
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
 const MEDIA_PATH = ({ identityId }: { identityId?: string }) => `media/${identityId}/`
@@ -82,12 +88,15 @@ export default function MediaLibraryPage() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Media library</h1>
-          <p className="mt-1 text-muted-foreground">Photos and videos you&apos;ve uploaded, ready to reuse in posts.</p>
-        </div>
+    <div className="mx-auto w-full max-w-7xl space-y-4 sm:space-y-6">
+      <PageHeader
+        title="Media library"
+        description={
+          items && items.length > 0
+            ? `${items.length} file${items.length === 1 ? "" : "s"} · ${formatBytes(items.reduce((t, i) => t + (i.size ?? 0), 0))}`
+            : "Photos and videos you've uploaded, ready to reuse in posts."
+        }
+        actions={
         <div>
           <input
             ref={inputRef}
@@ -102,7 +111,8 @@ export default function MediaLibraryPage() {
             {uploading ? "Uploading..." : "Upload"}
           </Button>
         </div>
-      </div>
+        }
+      />
 
       {error && <p className="text-sm text-red-600">{error}</p>}
 
@@ -113,17 +123,21 @@ export default function MediaLibraryPage() {
           ))}
         </div>
       ) : items.length === 0 ? (
-        <Card className="border-dashed">
-          <CardContent className="flex flex-col items-center gap-3 p-10 text-center">
-            <ImageIcon className="h-10 w-10 text-slate-300" />
-            <h3 className="font-semibold text-slate-800">No media yet</h3>
-            <p className="max-w-sm text-sm text-slate-500">
-              Upload photos and videos here, or add them while composing a post.
-            </p>
-          </CardContent>
-        </Card>
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          className="flex w-full flex-col items-center gap-3 rounded-xl border-2 border-dashed border-slate-300 bg-white p-8 text-center transition-colors hover:border-blue-400 hover:bg-blue-50/40 sm:p-12"
+        >
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-blue-50">
+            <ImageIcon className="h-7 w-7 text-blue-500" />
+          </span>
+          <span className="font-semibold text-slate-800">Drop in your first photo or video</span>
+          <span className="max-w-sm text-sm text-slate-500">
+            Tap to upload. JPG, PNG, MP4 and MOV all work, and anything you add while composing lands here too.
+          </span>
+        </button>
       ) : (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
           {items.map((item) => (
             <Card key={item.path} className="group overflow-hidden">
               <div className="relative aspect-square bg-slate-100">
@@ -140,7 +154,7 @@ export default function MediaLibraryPage() {
                 <Button
                   size="icon"
                   variant="secondary"
-                  className="absolute right-2 top-2 h-8 w-8 opacity-0 transition-opacity group-hover:opacity-100"
+                  className="absolute right-2 top-2 h-8 w-8 transition-opacity lg:opacity-0 lg:group-hover:opacity-100"
                   onClick={() => handleDelete(item.path)}
                   aria-label={`Delete ${item.name}`}
                 >

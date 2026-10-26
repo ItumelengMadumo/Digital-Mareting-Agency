@@ -3,6 +3,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Video, ImageIcon, FileText, Film, Link } from "lucide-react"
 import type { ContentType } from "@/app/dashboard/compose/page"
+import PlatformIcon from "@/components/platform-icon"
+import { platformsFor } from "@/lib/platforms"
 
 interface ContentTypeSelectionProps {
   onSelect: (contentType: ContentType) => void
@@ -56,6 +58,22 @@ const contentTypes = [
   },
 ]
 
+function PlatformsFor({ kind }: { kind: ContentType }) {
+  const list = platformsFor(kind)
+  return (
+    <span className="flex items-center gap-1.5">
+      <span className="flex -space-x-1">
+        {list.slice(0, 5).map((p) => (
+          <span key={p.id} className="flex h-6 w-6 items-center justify-center rounded-full bg-white ring-2 ring-white">
+            <PlatformIcon id={p.id} className="h-3 w-3" />
+          </span>
+        ))}
+      </span>
+      <span className="text-xs text-slate-500">{list.length} platforms</span>
+    </span>
+  )
+}
+
 export default function ContentTypeSelection({ onSelect }: ContentTypeSelectionProps) {
   return (
     <Card>
@@ -64,23 +82,24 @@ export default function ContentTypeSelection({ onSelect }: ContentTypeSelectionP
         <CardDescription>Choose the content format that best fits your message</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {contentTypes.map((type) => {
             const Icon = type.icon
             return (
               <button
                 key={type.id}
                 onClick={() => onSelect(type.id)}
-                className={`${type.bgColor} border-2 border-transparent hover:border-blue-600 rounded-lg p-6 text-left transition-all cursor-pointer group`}
+                className={`${type.bgColor} border-2 border-transparent hover:border-blue-500 rounded-xl p-4 text-left transition-all cursor-pointer group`}
               >
-                <div className="flex flex-col space-y-3">
-                  <div className={`${type.color}`}>
-                    <Icon className="h-10 w-10" />
+                <div className="flex items-start gap-3">
+                  <div className={`${type.color} flex-shrink-0`}>
+                    <Icon className="h-8 w-8" />
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-lg mb-1">{type.name}</h3>
-                    <p className="text-sm text-muted-foreground mb-2">{type.description}</p>
+                  <div className="min-w-0 space-y-1">
+                    <h3 className="font-semibold">{type.name}</h3>
+                    <p className="text-sm text-muted-foreground">{type.description}</p>
                     <p className="text-xs font-medium text-slate-600">{type.duration}</p>
+                    <PlatformsFor kind={type.id} />
                   </div>
                 </div>
               </button>

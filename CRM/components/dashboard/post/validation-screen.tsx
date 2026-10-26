@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { CheckCircle2, AlertCircle, XCircle, Calendar, Hash, FileText } from "lucide-react"
 import type { PostData } from "@/app/dashboard/compose/page"
+import PlatformIcon from "@/components/platform-icon"
+import { getPlatform, platformLabel } from "@/lib/platforms"
 
 interface ValidationScreenProps {
   postData: PostData
@@ -15,32 +17,26 @@ interface ValidationScreenProps {
 
 export default function ValidationScreen({ postData, onConfirm, onBack, saving }: ValidationScreenProps) {
   const validatePlatform = (platform: string) => {
-    const issues = []
-    const warnings = []
+    const issues: string[] = []
+    const warnings: string[] = []
+    const rules = getPlatform(platform)
+    const caption = postData.platformOverrides[platform]?.caption || postData.caption
+    const title = postData.platformOverrides[platform]?.title
 
-    // Twitter validation
-    if (platform === "twitter") {
-      const caption = postData.platformOverrides[platform]?.caption || postData.caption
-      if (caption.length > 280) {
-        warnings.push("Caption will be truncated to 280 characters")
+    if (rules) {
+      if (caption.length > rules.maxCaption) {
+        warnings.push(`Caption will be shortened to ${rules.maxCaption.toLocaleString()} characters`)
       }
-    }
-
-    // YouTube validation
-    if (platform === "youtube") {
-      if (!postData.platformOverrides[platform]?.title) {
-        issues.push("YouTube requires a video title")
+      if (rules.title?.required && !title?.trim()) {
+        issues.push(`${rules.label} needs a ${rules.title.label.toLowerCase()} (add it under "Customize per platform")`)
       }
-      if (!postData.media) {
-        issues.push("Video file required")
+      if (title && rules.title && title.length > rules.title.max) {
+        issues.push(`${rules.title.label} must be ${rules.title.max} characters or fewer`)
       }
-    }
-
-    // TikTok validation
-    if (platform === "tiktok") {
-      if (!postData.media) {
-        issues.push("Video file required")
+      if (rules.needsMedia && !postData.media) {
+        issues.push(`${rules.label} needs a photo or video`)
       }
+      if (rules.warning) warnings.push(rules.warning)
     }
 
     // General media validation
@@ -136,7 +132,8 @@ export default function ValidationScreen({ postData, onConfirm, onBack, saving }
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-2">
                       <Icon className={`h-5 w-5 ${config.color}`} />
-                      <span className="font-semibold capitalize">{platform}</span>
+                      <PlatformIcon id={platform} />
+                      <span className="font-semibold">{platformLabel(platform)}</span>
                     </div>
                     <Badge variant={validation.status === "ready" ? "default" : "secondary"}>{config.label}</Badge>
                   </div>

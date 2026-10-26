@@ -15,9 +15,9 @@ export default function SettingsPage() {
   const { isExecutive } = useRole()
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="mx-auto flex w-full max-w-7xl flex-col gap-4 sm:gap-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Settings</h1>
         <p className="text-muted-foreground mt-1">
           Workspace, notifications and security. Your name, photo and bio are on your{" "}
           <Link href="/dashboard/profile" className="text-blue-600 hover:underline">
