@@ -20,7 +20,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { SidebarBrand, SidebarFooter, SidebarNav } from "@/components/dashboard/dashboard-sidebar"
 import { DASHBOARD_NAV, isActiveLink } from "@/lib/dashboard-nav"
-import { displayName, initials, useCurrentUser } from "@/lib/use-current-user"
+import { capitalize, clearCurrentUserCache, displayName, initials, useCurrentUser } from "@/lib/use-current-user"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useWorkspace } from "@/lib/workspace-context"
 import { cn } from "@/lib/utils"
 
@@ -42,7 +43,7 @@ function usePageTitle() {
 export default function DashboardHeader({ isMinimized, mobileNavOpen, onMobileNavChange }: DashboardHeaderProps) {
   const router = useRouter()
   const { user } = useCurrentUser()
-  const { workspace } = useWorkspace()
+  const { workspace, workspaceRole, workspaceLoaded } = useWorkspace()
   const pageTitle = usePageTitle()
   const [query, setQuery] = useState("")
 
@@ -50,6 +51,7 @@ export default function DashboardHeader({ isMinimized, mobileNavOpen, onMobileNa
     try {
       localStorage.removeItem("current-workspace")
     } catch {}
+    clearCurrentUserCache()
     await signOut()
     router.replace("/")
     router.refresh()
@@ -75,10 +77,17 @@ export default function DashboardHeader({ isMinimized, mobileNavOpen, onMobileNa
             <p className="truncate text-base font-semibold text-slate-900">{pageTitle}</p>
           </div>
           <div className="hidden min-w-0 flex-1 items-center gap-6 lg:flex">
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-slate-900">{workspace?.name ?? "My Workspace"}</p>
-              <p className="text-xs text-slate-500">Workspace</p>
-            </div>
+            {workspaceLoaded && workspace ? (
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-slate-900">{workspace.name}</p>
+                <p className="text-xs text-slate-500">Pilot · {capitalize(workspaceRole)}</p>
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                <Skeleton className="h-3.5 w-32" />
+                <Skeleton className="h-3 w-20" />
+              </div>
+            )}
             <form onSubmit={handleSearch} className="relative w-full max-w-md">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <Input
@@ -118,12 +127,16 @@ export default function DashboardHeader({ isMinimized, mobileNavOpen, onMobileNa
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="h-9 w-9 rounded-full p-0" aria-label="Account menu">
-                  <Avatar className="h-8 w-8 lg:h-9 lg:w-9">
-                    {user?.avatarUrl && <AvatarImage src={user.avatarUrl} alt="" />}
-                    <AvatarFallback className="bg-blue-100 text-sm font-semibold text-blue-700">
-                      {initials(user)}
-                    </AvatarFallback>
-                  </Avatar>
+                  {user ? (
+                    <Avatar className="h-8 w-8 lg:h-9 lg:w-9">
+                      {user.avatarUrl && <AvatarImage src={user.avatarUrl} alt="" />}
+                      <AvatarFallback className="bg-blue-100 text-sm font-semibold text-blue-700">
+                        {initials(user)}
+                      </AvatarFallback>
+                    </Avatar>
+                  ) : (
+                    <Skeleton className="h-8 w-8 rounded-full lg:h-9 lg:w-9" />
+                  )}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-56" align="end">

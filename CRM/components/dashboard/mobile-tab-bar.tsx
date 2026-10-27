@@ -2,14 +2,14 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { FileText, Home, Inbox, Menu, Plus } from "lucide-react"
+import { Calendar, FileText, Home, Menu, Plus } from "lucide-react"
 import { isActiveLink } from "@/lib/dashboard-nav"
 import { cn } from "@/lib/utils"
 
 const TABS = [
   { name: "Home", href: "/dashboard", icon: Home },
   { name: "Posts", href: "/dashboard/posts", icon: FileText },
-  { name: "Inbox", href: "/dashboard/inbox", icon: Inbox },
+  { name: "Calendar", href: "/dashboard/calendar", icon: Calendar },
 ]
 
 /** Bottom navigation for phones and tablets (below lg). Menu opens the full navigation drawer. */

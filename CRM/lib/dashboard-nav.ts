@@ -31,6 +31,7 @@ import {
   Zap,
   type LucideIcon,
 } from "lucide-react"
+import { isEnabled, type Feature } from "@/lib/features"
 
 export interface NavLink {
   name: string
@@ -40,6 +41,8 @@ export interface NavLink {
 
 export interface NavGroup {
   id: string
+  /** Hidden from navigation when this feature is switched off in lib/features.ts. */
+  feature?: Feature
   title?: string
   icon?: LucideIcon
   links: NavLink[]
@@ -48,7 +51,7 @@ export interface NavGroup {
   defaultOpen?: boolean
 }
 
-export const DASHBOARD_NAV: NavGroup[] = [
+const ALL_NAV: NavGroup[] = [
   { id: "home", links: [{ name: "Home", href: "/dashboard", icon: Home }] },
   {
     id: "content",
@@ -65,6 +68,7 @@ export const DASHBOARD_NAV: NavGroup[] = [
   },
   {
     id: "engagement",
+    feature: "inbox",
     title: "Engagement",
     icon: Inbox,
     collapsible: true,
@@ -73,6 +77,7 @@ export const DASHBOARD_NAV: NavGroup[] = [
   },
   {
     id: "comms",
+    feature: "comms",
     title: "Comms",
     icon: Phone,
     collapsible: true,
@@ -97,6 +102,7 @@ export const DASHBOARD_NAV: NavGroup[] = [
   },
   {
     id: "crm",
+    feature: "crm",
     title: "CRM",
     icon: Briefcase,
     collapsible: true,
@@ -129,6 +135,9 @@ export const DASHBOARD_NAV: NavGroup[] = [
     ],
   },
 ]
+
+/** Navigation for the features that are switched on. */
+export const DASHBOARD_NAV: NavGroup[] = ALL_NAV.filter((g) => !g.feature || isEnabled(g.feature))
 
 // Section roots only match themselves, so "Overview" isn't highlighted on every comms page.
 const EXACT_MATCH = new Set(["/dashboard", "/dashboard/comms"])

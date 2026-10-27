@@ -14,13 +14,13 @@ export default function InboxPage() {
       <Card className="border-dashed lg:col-span-2">
         <CardContent className="flex flex-col items-center gap-3 p-10 text-center">
           <Inbox className="h-10 w-10 text-slate-300" />
-          <h3 className="font-semibold text-slate-800">Connect analytics to see comments here</h3>
+          <h3 className="font-semibold text-slate-800">Connect an account to see comments</h3>
           <p className="max-w-md text-sm text-slate-500">
             Comments, replies and DMs need each platform&apos;s approval for SocialSync to read them. They&apos;ll start
             showing here, and on each post in your timeline, as each platform is switched on.
           </p>
           <Button variant="outline" className="mt-2" asChild>
-            <Link href="/dashboard/accounts">Social accounts</Link>
+            <Link href="/dashboard/accounts">Connect an account</Link>
           </Button>
         </CardContent>
       </Card>

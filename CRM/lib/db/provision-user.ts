@@ -2,6 +2,14 @@ import { createUser, getUserByEmail, updateUser, type UserRecord } from "./users
 import { createWorkspace } from "./workspaces"
 import { addMember } from "./workspace-members"
 
+/** "itu" -> "Itu", "van der merwe" -> "Van Der Merwe". */
+function capitalizeName(name: string) {
+  return name
+    .split(/(\s+|-)/)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join("")
+}
+
 interface ProvisionInput {
   email: string
   cognitoSub?: string
@@ -24,10 +32,10 @@ export async function provisionUser({ email, cognitoSub, firstName, lastName }: 
     return existing
   }
 
-  const first = firstName?.trim() || normalizedEmail.split("@")[0]
+  const first = capitalizeName(firstName?.trim() || normalizedEmail.split("@")[0])
   let user: UserRecord
   try {
-    user = await createUser({ email: normalizedEmail, cognitoSub, firstName: first, lastName: lastName?.trim() || "" })
+    user = await createUser({ email: normalizedEmail, cognitoSub, firstName: first, lastName: capitalizeName(lastName?.trim() || "") })
   } catch {
     // Another request created the user between our read and write.
     const raced = await getUserByEmail(normalizedEmail)

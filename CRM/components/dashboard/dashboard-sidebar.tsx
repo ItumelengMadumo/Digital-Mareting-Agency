@@ -16,9 +16,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { Skeleton } from "@/components/ui/skeleton"
 import { DASHBOARD_NAV, isActiveLink, type NavGroup, type NavLink } from "@/lib/dashboard-nav"
 import { displayName, initials, useCurrentUser } from "@/lib/use-current-user"
-import { SITE } from "@/lib/site"
+import FeedbackDialog from "@/components/dashboard/feedback-dialog"
 
 const STORAGE_KEY = "sidebar-groups"
 
@@ -187,19 +188,33 @@ export function SidebarBrand({ minimized }: { minimized?: boolean }) {
 
 export function SidebarFooter({ minimized }: { minimized?: boolean }) {
   const { user } = useCurrentUser()
+  const [feedbackOpen, setFeedbackOpen] = useState(false)
   return (
     <div className="space-y-3 border-t border-slate-200 p-3">
-      <a
-        href={`mailto:${SITE.email}?subject=SocialSync%20feedback`}
+      <button
+        type="button"
+        onClick={() => setFeedbackOpen(true)}
         className={cn(
-          "flex items-center rounded-md px-3 py-2 text-sm text-slate-600 hover:bg-slate-100",
+          "flex w-full items-center rounded-md px-3 py-2 text-sm text-slate-600 hover:bg-slate-100",
           minimized && "justify-center",
         )}
         title="Help & feedback"
       >
         <LifeBuoy className={cn("h-5 w-5", !minimized && "mr-3")} />
         {!minimized && "Help & feedback"}
-      </a>
+      </button>
+      <FeedbackDialog open={feedbackOpen} onOpenChange={setFeedbackOpen} />
+      {!user ? (
+        <div className={cn("flex items-center gap-3 px-1", minimized && "justify-center")}>
+          <Skeleton className="h-8 w-8 rounded-full" />
+          {!minimized && (
+            <div className="flex-1 space-y-1.5">
+              <Skeleton className="h-3.5 w-24" />
+              <Skeleton className="h-3 w-32" />
+            </div>
+          )}
+        </div>
+      ) : (
       <Link href="/dashboard/profile" className={cn("flex items-center gap-3 px-1", minimized && "justify-center")}>
         <Avatar className="h-8 w-8">
           {user?.avatarUrl && <AvatarImage src={user.avatarUrl} alt="" />}
@@ -207,11 +222,12 @@ export function SidebarFooter({ minimized }: { minimized?: boolean }) {
         </Avatar>
         {!minimized && (
           <div className="min-w-0">
-            <p className="truncate text-sm font-medium text-slate-900">{displayName(user) || "Loading..."}</p>
-            <p className="truncate text-xs text-slate-500">{user?.email}</p>
+            <p className="truncate text-sm font-medium text-slate-900">{displayName(user)}</p>
+            <p className="truncate text-xs text-slate-500">{user.email}</p>
           </div>
         )}
       </Link>
+      )}
     </div>
   )
 }

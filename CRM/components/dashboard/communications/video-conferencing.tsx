@@ -116,11 +116,12 @@ export default function VideoConferencing({ preSelectedLead }: VideoConferencing
             </div>
             <Button
               onClick={handleStartInstantMeeting}
-              disabled={isScheduling}
+              disabled
+              title="Video meetings aren't connected yet"
               className="w-full bg-blue-600 hover:bg-blue-700"
             >
               <Video className="mr-2 h-4 w-4" />
-              {isScheduling ? "Starting..." : "Start Instant Meeting"}
+              Start meeting (not connected)
             </Button>
           </CardContent>
         </Card>
@@ -212,11 +213,12 @@ export default function VideoConferencing({ preSelectedLead }: VideoConferencing
 
             <Button
               onClick={handleScheduleMeeting}
-              disabled={!meetingTitle || !meetingDate || !meetingTime || isScheduling}
+              disabled
+              title="Video meetings aren't connected yet"
               className="w-full bg-blue-600 hover:bg-blue-700"
             >
               <Calendar className="mr-2 h-4 w-4" />
-              {isScheduling ? "Scheduling..." : "Schedule Meeting"}
+              Schedule meeting (not connected)
             </Button>
           </CardContent>
         </Card>

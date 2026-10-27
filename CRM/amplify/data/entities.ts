@@ -31,6 +31,9 @@ export const ENTITIES: EntityDefinition[] = [
   { name: "Deals", gsi1: true },
   { name: "ActivityLogs", gsi1: true },
 
+  // Product
+  { name: "Feedback", gsi1: true }, // gsi1pk = workspaceId; in-app bug reports and ideas
+
   // Marketing modules
   { name: "AutomationRules", gsi1: true },
   { name: "AutomationLogs", gsi1: true },

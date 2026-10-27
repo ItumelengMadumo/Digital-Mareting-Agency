@@ -22,7 +22,7 @@ import PostCard from "@/components/dashboard/posts/post-card"
 import PlatformIcon from "@/components/platform-icon"
 import { SOCIAL_PLATFORMS } from "@/lib/platforms"
 import { postView, usePosts, useSocialAccounts } from "@/lib/posts"
-import { useCurrentUser } from "@/lib/use-current-user"
+import { capitalize, useCurrentUser } from "@/lib/use-current-user"
 import { cn } from "@/lib/utils"
 
 const PAGE_SIZE = 10
@@ -34,7 +34,8 @@ function greeting() {
 
 function KpiTile({ label, value, icon: Icon, href, tint }: {
   label: string
-  value: number | string
+  /** null while loading */
+  value: number | string | null
   icon: LucideIcon
   href: string
   tint: string
@@ -47,7 +48,11 @@ function KpiTile({ label, value, icon: Icon, href, tint }: {
             <Icon className="h-5 w-5" />
           </span>
           <div className="min-w-0">
-            <p className="text-xl font-bold leading-tight text-slate-900 sm:text-2xl">{value}</p>
+            {value === null ? (
+              <Skeleton className="mb-1 h-7 w-10" />
+            ) : (
+              <p className="text-xl font-bold leading-tight text-slate-900 sm:text-2xl">{value}</p>
+            )}
             <p className="truncate text-xs text-slate-500 sm:text-sm">{label}</p>
           </div>
         </CardContent>
@@ -152,6 +157,8 @@ export default function DashboardHome() {
   const { user } = useCurrentUser()
   const { posts, loading, error } = usePosts()
   const { accounts, connected } = useSocialAccounts()
+  // Counts, checklist and platform cards wait for both, so they never show a wrong interim state.
+  const dataReady = !loading && accounts !== null
   const [visible, setVisible] = useState(PAGE_SIZE)
 
   const counts = useMemo(() => {
@@ -183,11 +190,10 @@ export default function DashboardHome() {
 
   const connectedIds = new Set(connected.map((a) => a.platform))
   const checklist = [
-    { label: "Create your account", done: true },
-    { label: "Complete your profile", done: Boolean(user?.handle || user?.bio), href: "/dashboard/profile" },
     { label: "Connect a social account", done: connected.length > 0, href: "/dashboard/accounts" },
     { label: "Write your first post", done: posts.length > 0, href: "/dashboard/compose" },
     { label: "Schedule a post", done: posts.some((p) => p.scheduledAt), href: "/dashboard/compose" },
+    { label: "Complete your profile", done: Boolean(user?.handle || user?.bio), href: "/dashboard/profile" },
   ]
   const checklistDone = checklist.filter((c) => c.done).length
 
@@ -196,18 +202,18 @@ export default function DashboardHome() {
       <div className="flex flex-col gap-1">
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">
           {greeting()}
-          {user?.firstName ? `, ${user.firstName}` : ""}
+          {user?.firstName ? `, ${capitalize(user.firstName)}` : ""}
         </h1>
         <p className="text-sm text-slate-500 sm:text-base">{format(new Date(), "EEEE d MMMM")} · here&apos;s your content at a glance.</p>
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <KpiTile label="Drafts" value={loading ? "–" : counts.drafts} icon={FileText} href="/dashboard/posts" tint="bg-slate-100 text-slate-700" />
-        <KpiTile label="Scheduled" value={loading ? "–" : counts.scheduled} icon={CalendarClock} href="/dashboard/posts" tint="bg-blue-100 text-blue-700" />
-        <KpiTile label="Published this month" value={loading ? "–" : counts.publishedThisMonth} icon={Send} href="/dashboard/posts" tint="bg-green-100 text-green-700" />
+        <KpiTile label="Drafts" value={dataReady ? counts.drafts : null} icon={FileText} href="/dashboard/posts" tint="bg-slate-100 text-slate-700" />
+        <KpiTile label="Scheduled" value={dataReady ? counts.scheduled : null} icon={CalendarClock} href="/dashboard/posts" tint="bg-blue-100 text-blue-700" />
+        <KpiTile label="Published this month" value={dataReady ? counts.publishedThisMonth : null} icon={Send} href="/dashboard/posts" tint="bg-green-100 text-green-700" />
         <KpiTile
           label="Connected accounts"
-          value={accounts === null ? "–" : `${connected.length}/${SOCIAL_PLATFORMS.length}`}
+          value={dataReady ? `${connected.length}/${SOCIAL_PLATFORMS.length}` : null}
           icon={Share2}
           href="/dashboard/accounts"
           tint="bg-purple-100 text-purple-700"
@@ -306,6 +312,13 @@ export default function DashboardHome() {
               </Link>
             </CardHeader>
             <CardContent>
+              {!dataReady ? (
+                <div className="grid grid-cols-5 gap-2">
+                  {SOCIAL_PLATFORMS.map((p) => (
+                    <Skeleton key={p.id} className="aspect-square rounded-lg" />
+                  ))}
+                </div>
+              ) : (
               <div className="grid grid-cols-5 gap-2">
                 {SOCIAL_PLATFORMS.map((p) => {
                   const isConnected = connectedIds.has(p.id)
@@ -325,13 +338,18 @@ export default function DashboardHome() {
                   )
                 })}
               </div>
-              <p className="mt-3 text-xs text-slate-500">
-                {connected.length === 0 ? "No platforms connected yet." : `${connected.length} connected`}
-              </p>
+              )}
+              {dataReady && (
+                <p className="mt-3 text-xs text-slate-500">
+                  {connected.length === 0 ? "No platforms connected yet." : `${connected.length} connected`}
+                </p>
+              )}
             </CardContent>
           </Card>
 
-          {checklistDone < checklist.length && (
+          {!dataReady ? (
+            <Skeleton className="h-56 rounded-xl" />
+          ) : checklistDone < checklist.length && (
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="flex items-center justify-between text-base">

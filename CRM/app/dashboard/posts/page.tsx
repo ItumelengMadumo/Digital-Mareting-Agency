@@ -1,9 +1,8 @@
 "use client"
 
 import { Suspense, useEffect, useMemo, useState } from "react"
-import Link from "next/link"
 import { useSearchParams } from "next/navigation"
-import { PenSquare, Search, X } from "lucide-react"
+import { Search, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -72,14 +71,6 @@ function PostsView() {
       <PageHeader
         title="Posts"
         description="Drafts, scheduled posts and everything you've published."
-        actions={
-          <Button className="hidden bg-blue-500 hover:bg-blue-600 sm:inline-flex" asChild>
-            <Link href="/dashboard/compose">
-              <PenSquare className="mr-2 h-4 w-4" />
-              New post
-            </Link>
-          </Button>
-        }
       />
 
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center">

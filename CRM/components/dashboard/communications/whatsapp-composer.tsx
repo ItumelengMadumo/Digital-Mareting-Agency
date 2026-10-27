@@ -77,9 +77,10 @@ export default function WhatsAppComposer() {
             File
           </Button>
         </div>
-        <Button onClick={handleSend} className="gap-2">
+        {/* Disabled until a provider is connected: nothing would actually be sent. */}
+        <Button onClick={handleSend} variant="outline" className="gap-2" disabled title="WhatsApp isn't connected yet">
           <Send className="h-4 w-4" />
-          Send Message
+          Send (not connected)
         </Button>
       </div>
     </div>

@@ -122,6 +122,8 @@ export default function VoIPDialer() {
       <div className="flex items-center justify-center pt-4">
         <Button
           onClick={handleCall}
+          disabled
+          title="Calling isn't connected yet"
           className={`gap-2 h-12 px-8 rounded-full ${
             isCallActive ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"
           }`}
@@ -134,7 +136,7 @@ export default function VoIPDialer() {
           ) : (
             <>
               <Phone className="h-5 w-5" />
-              Start Call
+              Call (not connected)
             </>
           )}
         </Button>

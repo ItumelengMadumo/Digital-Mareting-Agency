@@ -28,7 +28,7 @@ interface CalendarPost {
 }
 
 export default function Calendar() {
-  const { posts } = usePosts()
+  const { posts, loading } = usePosts()
   // Scheduled posts sit on their publish time; drafts on the day they were written.
   const calendarPosts: CalendarPost[] = useMemo(
     () =>
@@ -94,7 +94,21 @@ export default function Calendar() {
   })
 
   return (
-    <div className="bg-card rounded-lg border shadow-sm overflow-hidden">
+    <div className="relative bg-card rounded-lg border shadow-sm overflow-hidden">
+      {!loading && posts.length === 0 && (
+        <div className="absolute inset-x-0 bottom-0 top-14 z-10 flex items-center justify-center bg-white/70 p-4 backdrop-blur-[1px]">
+          <div className="max-w-sm rounded-xl border border-slate-200 bg-white p-6 text-center shadow-lg">
+            <CalendarIcon className="mx-auto h-8 w-8 text-blue-500" />
+            <h3 className="mt-3 font-semibold text-slate-900">Nothing on your calendar yet</h3>
+            <p className="mt-1 text-sm text-slate-500">
+              Scheduled posts appear on the day they go out, and drafts on the day you wrote them.
+            </p>
+            <Button asChild className="mt-4 bg-blue-500 hover:bg-blue-600">
+              <Link href="/dashboard/compose">Schedule your first post</Link>
+            </Button>
+          </div>
+        </div>
+      )}
       <div className="p-3 sm:p-4 flex justify-between items-center gap-2">
         <div className="flex items-center min-w-0">
           <CalendarIcon className="mr-2 h-5 w-5 flex-shrink-0 text-blue-500" />

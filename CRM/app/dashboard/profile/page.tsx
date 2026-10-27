@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Textarea } from "@/components/ui/textarea"
 import PageHeader from "@/components/dashboard/page-header"
-import { initials, useCurrentUser } from "@/lib/use-current-user"
+import { capitalize, initials, useCurrentUser } from "@/lib/use-current-user"
 
 const EMPTY = { firstName: "", lastName: "", handle: "", phone: "", bio: "", timezone: "", avatarUrl: "" }
 
@@ -73,7 +73,7 @@ export default function ProfilePage() {
           </Avatar>
           <div>
             <p className="text-xl font-semibold">
-              {form.firstName} {form.lastName}
+              {capitalize(form.firstName)} {capitalize(form.lastName)}
             </p>
             {form.handle && <p className="text-blue-600">@{form.handle}</p>}
             <p className="text-sm text-slate-500">

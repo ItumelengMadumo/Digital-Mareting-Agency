@@ -78,9 +78,10 @@ export default function SMSComposer() {
       </div>
 
       <div className="flex items-center justify-end pt-4">
-        <Button onClick={handleSend} className="gap-2">
+        {/* Disabled until a provider is connected: nothing would actually be sent. */}
+        <Button onClick={handleSend} variant="outline" className="gap-2" disabled title="SMS isn't connected yet">
           <Send className="h-4 w-4" />
-          Send SMS
+          Send SMS (not connected)
         </Button>
       </div>
     </div>
